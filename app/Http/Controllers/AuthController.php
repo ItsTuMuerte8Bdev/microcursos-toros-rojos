@@ -81,6 +81,10 @@ class AuthController extends Controller
             'estado' => 'inactivo', // until verified
             'fecha_registro' => now(),
             'verification_token' => $token,
+            // store when the verification email was sent so the UI / audits can show it
+            'verification_sent_at' => now(),
+            // explicitly null until verified
+            'email_verified_at' => null,
         ]);
 
         // Send verification email (best-effort)
