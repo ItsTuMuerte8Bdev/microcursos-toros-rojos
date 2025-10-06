@@ -228,6 +228,9 @@
                             </li>
                             <li><a class="dropdown-item" href="{{ url('/perfil') }}">Editar información <br> personal</a></li>
                             <li><a class="dropdown-item" href="{{ url('/password/change') }}">Cambiar contraseña</a></li>
+                            @if(!empty(auth()->user()->email_verified_at) === false)
+                                <li><a class="dropdown-item text-warning" href="{{ route('register.verify.pending') }}"><strong>Verifica tu cuenta</strong><br><small class="text-muted">Reenvía el correo de verificación</small></a></li>
+                            @endif
                             <li><hr class="dropdown-divider"></li>
                             <li class="px-3 py-2 logout-wrap">
                                 <form method="POST" action="{{ route('logout') }}" style="margin:0;">
