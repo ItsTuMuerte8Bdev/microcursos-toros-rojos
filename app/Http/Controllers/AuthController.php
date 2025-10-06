@@ -255,22 +255,53 @@ class AuthController extends Controller
         try{
             $socialUser = \Laravel\Socialite\Facades\Socialite::driver($provider)->user();
         } catch(\Exception $e){
-            Log::error('Socialite callback error: '.$e->getMessage());
+            logger()->error('Socialite callback error: '.$e->getMessage());
             return redirect('/login')->withErrors(['oauth' => 'Error al autenticar con '.$provider]);
         }
 
-        // Find or create local user
-        $user = User::where('email', $socialUser->getEmail())->first();
-        if(!$user){
-            $user = User::create([
-                'name' => $socialUser->getName() ?? $socialUser->getNickname() ?? 'Usuario',
-                'email' => $socialUser->getEmail(),
-                'password' => Hash::make(str()->random(24)), // random password
-            ]);
+
+        // Ensure we have an email (GitHub may not provide one if it's private)
+        $email = $socialUser->getEmail();
+        if (empty($email)) {
+            return redirect('/login')->withErrors(['oauth' => 'No se obtuvo el correo del proveedor. Por favor usa registro tradicional o asegúrate que tu proveedor comparte el email.']);
         }
 
-        // Log in the user
-        Auth::login($user, true);
+        // Find or create local Usuario (app uses `usuarios` table)
+        $usuario = Usuario::where('correo', $email)->first();
+        if (!$usuario) {
+            // try to split name into first/last
+            $fullName = $socialUser->getName() ?? $socialUser->getNickname() ?? 'Usuario';
+            $parts = preg_split('/\s+/', trim($fullName), 2);
+            $first = $parts[0] ?? 'Usuario';
+            $last = $parts[1] ?? '';
+
+            $usuario = Usuario::create([
+                'nombre' => $first,
+                'apellido' => $last,
+                'correo' => $email,
+                // the mutator will hash this
+                'password' => Str::random(24),
+                'rol' => 'empleado',
+                'proveedor_oauth' => $provider,
+                'proveedor_id' => $socialUser->getId(),
+                'fecha_registro' => now(),
+                'estado' => 'activo',
+                'sexo' => 'no binario',
+                'verification_token' => null,
+                'verification_sent_at' => null,
+                'email_verified_at' => now(),
+            ]);
+        } else {
+            // Update provider info if missing
+            $changed = false;
+            if (empty($usuario->proveedor_oauth)) { $usuario->proveedor_oauth = $provider; $changed = true; }
+            if (empty($usuario->proveedor_id)) { $usuario->proveedor_id = $socialUser->getId(); $changed = true; }
+            if (empty($usuario->email_verified_at)) { $usuario->email_verified_at = now(); $usuario->estado = 'activo'; $changed = true; }
+            if ($changed) $usuario->save();
+        }
+
+        // Log in the usuario
+        Auth::login($usuario, true);
 
         // Here: migrate any session-stored completed courses into user's profile (DB).
         // Example placeholder: \App\Services\CourseProgress::syncSessionToUser($user, session('course_progress'));
