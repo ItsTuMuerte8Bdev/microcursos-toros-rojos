@@ -54,7 +54,7 @@
                     <form method="POST" action="{{ url('/login') }}">
                         @csrf
                         @if(session('status'))
-                            <div class="alert alert-info">{{ session('status') }}</div>
+                            <div class="alert alert-info">{{ session('status') }}<br><small>Si no lo ves en tu bandeja de entrada, revisa la carpeta de no deseados (spam).</small></div>
                         @endif
                         @if($errors->any())
                             <div class="alert alert-danger">
