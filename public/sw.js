@@ -1,5 +1,5 @@
 // Service Worker: precache + activation + navigation fallback
-const CACHE_NAME = 'microcursos-v3';
+const CACHE_NAME = 'microcursos-v4';
 const ASSETS = [
   '/',
   '/js/microcursos.js',
@@ -47,6 +47,19 @@ self.addEventListener('fetch', (event) => {
   const isNavigation = req.mode === 'navigate' || accept.includes('text/html');
 
   if (isNavigation) {
+    // If the navigation is for auth callbacks or any /auth/* path, skip SW handling.
+    // Some hosts or auth flows are sensitive to interception (cookies/state). Let the
+    // browser perform the navigation directly to avoid 403s or missing params.
+    if (req.url && req.url.indexOf('/auth/') !== -1) {
+      console.log('[SW] bypassing SW for auth navigation:', req.url);
+      event.respondWith(
+        fetch(req, { credentials: 'same-origin', redirect: 'follow' }).catch(() => {
+          return new Response('Service Unavailable', { status: 503, statusText: 'Service Unavailable' });
+        })
+      );
+      return;
+    }
+
     // Network-first for navigation: try network, if it fails fall back to cache.
     console.log('[SW] navigation fetch for:', req.url);
     event.respondWith(

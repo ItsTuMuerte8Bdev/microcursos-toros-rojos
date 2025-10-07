@@ -242,7 +242,7 @@ class AuthController extends Controller
     }
 
     // Handle provider callback
-    public function handleProviderCallback($provider)
+    public function handleProviderCallback(\Illuminate\Http\Request $request, $provider)
     {
         if(!in_array($provider, ['google','github'])){
             abort(404);
@@ -252,11 +252,49 @@ class AuthController extends Controller
             return response('Socialite is not installed. Run: composer require laravel/socialite', 501);
         }
 
+        // Log incoming request to debug missing `code` issues (Google returns ?code=... on success)
+        logger()->info('OAuth callback request', [
+            'provider' => $provider,
+            'query' => $request->query(),
+            'input' => $request->all(),
+            'method' => $request->method(),
+        ]);
+
+        // Log provider config for debugging (redirect uri, client id presence)
+        try{
+            $svc = config('services.' . $provider);
+        } catch(\Throwable $t){
+            $svc = null;
+        }
+        logger()->info('Socialite provider config', ['provider' => $provider, 'config' => $svc]);
+
         try{
             $socialUser = \Laravel\Socialite\Facades\Socialite::driver($provider)->user();
         } catch(\Exception $e){
-            logger()->error('Socialite callback error: '.$e->getMessage());
-            return redirect('/login')->withErrors(['oauth' => 'Error al autenticar con '.$provider]);
+            // Log full exception for diagnostics (message, code and stack)
+            logger()->error('Socialite callback exception (initial)', [
+                'provider' => $provider,
+                'message' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            // Try stateless fallback: this bypasses state check and sometimes helps when the
+            // session/state was lost by the time the callback arrives (proxies, SWs, SameSite).
+            try{
+                logger()->info('Attempting stateless fallback for Socialite provider', ['provider' => $provider]);
+                $socialUser = \Laravel\Socialite\Facades\Socialite::driver($provider)->stateless()->user();
+                logger()->info('Stateless Socialite succeeded', ['provider' => $provider, 'id' => $socialUser->getId(), 'email' => $socialUser->getEmail()]);
+            } catch(\Exception $e2){
+                logger()->error('Socialite callback exception (stateless fallback)', [
+                    'provider' => $provider,
+                    'message' => $e2->getMessage(),
+                    'code' => $e2->getCode(),
+                    'trace' => $e2->getTraceAsString(),
+                ]);
+
+                return redirect('/login')->withErrors(['oauth' => 'Error al autenticar con '.$provider.'. Revisa los registros para más detalles.']);
+            }
         }
 
 
