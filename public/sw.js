@@ -1,5 +1,7 @@
 // Service Worker: precache + activation + navigation fallback
-const CACHE_NAME = 'microcursos-v4';
+// Bump the cache name when modifying SW logic so clients install the new
+// SW and stop using the old interception behavior for /auth/* routes.
+const CACHE_NAME = 'microcursos-v5';
 const ASSETS = [
   '/',
   '/js/microcursos.js',
@@ -51,12 +53,12 @@ self.addEventListener('fetch', (event) => {
     // Some hosts or auth flows are sensitive to interception (cookies/state). Let the
     // browser perform the navigation directly to avoid 403s or missing params.
     if (req.url && req.url.indexOf('/auth/') !== -1) {
-      console.log('[SW] bypassing SW for auth navigation:', req.url);
-      event.respondWith(
-        fetch(req, { credentials: 'same-origin', redirect: 'follow' }).catch(() => {
-          return new Response('Service Unavailable', { status: 503, statusText: 'Service Unavailable' });
-        })
-      );
+      // For OAuth flows and auth-related navigations we must NOT intercept.
+      // Some auth providers rely on the browser doing a full navigation and
+      // intermediating the request inside the Service Worker can cause the
+      // flow to break (redirects, cookies, or CSP). Let the browser handle
+      // the navigation natively by not calling `event.respondWith` here.
+      console.log('[SW] not intercepting auth navigation (letting browser handle):', req.url);
       return;
     }
 
