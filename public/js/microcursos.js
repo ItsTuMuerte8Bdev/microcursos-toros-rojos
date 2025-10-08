@@ -501,7 +501,11 @@
             }).catch(()=>{});
     }
 
+    // Flag to indicate we're fetching courses/progress to avoid racey filtering
+    let isFetchingCourses = false;
+
     // Batch fetch progress for all course cards on the page
+    // Returns a Promise that resolves when progress has been applied to cards
     function fetchBatchProgress(courseIds, userId){
         if (!courseIds || !courseIds.length) return;
         const uid = userId || window.CURRENT_USER || 1;
@@ -515,7 +519,7 @@
             placeholder.innerHTML = `<div class="mb-2"><div class="progress" style="height:8px;"><div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 30%"></div></div><small class="text-muted">Cargando...</small></div>`;
         });
 
-        fetch('/api/cursos/progress-batch', {
+        return fetch('/api/cursos/progress-batch', {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type':'application/json', 'X-Requested-With':'XMLHttpRequest', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
@@ -717,6 +721,11 @@
     const filterCategory = document.getElementById('filterCategory');
 
     function applyFilters(){
+        // If a fetch for courses/progress is in flight, wait briefly and retry
+        if (typeof isFetchingCourses !== 'undefined' && isFetchingCourses){
+            try{ setTimeout(applyFilters, 180); }catch(e){}
+            return;
+        }
         const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
         const showCompleted = filterCompleted ? filterCompleted.checked : false;
         const showInProgress = filterInProgress ? filterInProgress.checked : false;
@@ -802,13 +811,42 @@
                     `;
                     list.appendChild(card);
                 });
-                // re-attach handlers and fetch progress
+                // re-attach handlers
                 try{ initMicrocursos(); }catch(e){}
-                // fetch batch progress for visible cursoIds
-                try{ if (cursoIds.length) fetchBatchProgress(cursoIds, window.CURRENT_USER); }catch(e){}
+
+                // Disable status controls while we fetch progress to avoid race conditions
+                try{
+                    isFetchingCourses = true;
+                    if (filterCompleted) filterCompleted.disabled = true;
+                    if (filterInProgress) filterInProgress.disabled = true;
+                    if (searchInput) searchInput.disabled = true;
+                }catch(e){}
+
+                // fetch batch progress for visible cursoIds and then apply client filters
+                try{
+                    if (cursoIds.length) {
+                        fetchBatchProgress(cursoIds, window.CURRENT_USER)
+                        .then(()=>{
+                            // re-enable controls and apply filters now that percents are set
+                            try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; if (searchInput) searchInput.disabled = false; }catch(e){}
+                            try{ applyFilters(); }catch(e){}
+                        }).catch((err)=>{
+                            try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; if (searchInput) searchInput.disabled = false; }catch(e){}
+                            try{ applyFilters(); }catch(e){}
+                        });
+                    } else {
+                        // nothing to fetch; ensure controls re-enabled and filters applied
+                        try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; if (searchInput) searchInput.disabled = false; }catch(e){}
+                        try{ applyFilters(); }catch(e){}
+                    }
+                }catch(e){
+                    try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; if (searchInput) searchInput.disabled = false; }catch(err){}
+                    try{ applyFilters(); }catch(err){}
+                }
             }).catch(err=>{
                 console.warn('Fetch cursos failed, falling back to client-side filter', err);
-                // fallback to client-side filter
+                // fallback to client-side filter and ensure controls are enabled
+                try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; if (searchInput) searchInput.disabled = false; }catch(e){}
                 applyFilters();
             });
     }
