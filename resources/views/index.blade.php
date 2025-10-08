@@ -76,6 +76,45 @@
                     if(s2) s2.style.display = 'none'; if(p2) p2.style.display = 'none';
                 }catch(e){}
             }
+            // Ensure mainCoursesBtn always handles clicks explicitly so that
+            // on mobile devices we don't get the default anchor behaviour
+            // (href="#") which scrolls the page to the top. This handler
+            // will navigate when the user is authenticated or show the
+            // login-required modal (with redirect) for guests.
+            if (mainBtn) {
+                try{
+                    mainBtn.addEventListener('click', function(e){
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const target = mainBtn.getAttribute('data-target-url') || mainBtn.getAttribute('href') || '/microcursos';
+
+                        // If authenticated, go directly
+                        if (window.CURRENT_USER) {
+                            window.location.href = target;
+                            return;
+                        }
+
+                        // Otherwise, show login modal and ensure redirect param is set
+                        const modalEl = document.getElementById('loginRequiredModal');
+                        if (modalEl){
+                            try{
+                                const modal = new bootstrap.Modal(modalEl);
+                                const loginBtn = document.getElementById('modalLoginBtn');
+                                if (loginBtn) {
+                                    try{
+                                        const url = new URL(loginBtn.getAttribute('href'), window.location.origin);
+                                        url.searchParams.set('redirect_to', target);
+                                        loginBtn.setAttribute('href', url.toString());
+                                    }catch(_){ /* ignore URL errors */ }
+                                }
+                                modal.show();
+                            }catch(_){ window.location.href = '/login?redirect_to=' + encodeURIComponent(target); }
+                        } else {
+                            window.location.href = '/login?redirect_to=' + encodeURIComponent(target);
+                        }
+                    });
+                }catch(e){}
+            }
 
             // Also react to changes while on the page
             window.addEventListener('offline', function(){ showOfflineMessage(); if(isAuth){ if(mainBtn) mainBtn.classList.add('d-none'); if(downloadsBtn) downloadsBtn.classList.remove('d-none'); } else { if(mainBtn) mainBtn.classList.add('disabled-link'); } });
