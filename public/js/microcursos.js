@@ -814,8 +814,10 @@
     }
 
     if (searchInput) searchInput.addEventListener('input', function(){ fetchAndRenderCourses(); });
-    if (filterCompleted) filterCompleted.addEventListener('change', function(){ fetchAndRenderCourses(); });
-    if (filterInProgress) filterInProgress.addEventListener('change', function(){ fetchAndRenderCourses(); });
+    // Status checkboxes are client-side filters (they depend on loaded progress metadata).
+    // Don't re-query the server when user toggles them; instead run the local filter.
+    if (filterCompleted) filterCompleted.addEventListener('change', function(){ try{ applyFilters(); }catch(e){} });
+    if (filterInProgress) filterInProgress.addEventListener('change', function(){ try{ applyFilters(); }catch(e){} });
     if (filterCategory) filterCategory.addEventListener('change', function(){ fetchAndRenderCourses(); });
 
     // Clear filters button
@@ -825,7 +827,9 @@
         if (filterCompleted) filterCompleted.checked = false;
         if (filterInProgress) filterInProgress.checked = false;
         if (filterCategory) filterCategory.value = '';
+        // Refresh list from server for category/search reset, then re-apply client filters
         fetchAndRenderCourses();
+        try{ setTimeout(function(){ applyFilters(); }, 350); }catch(e){}
     });
     }
 
