@@ -234,7 +234,15 @@ class AuthController extends Controller
 
         // Use Laravel Socialite if available
         if(class_exists('\Laravel\Socialite\Facades\Socialite')){
-            return \Laravel\Socialite\Facades\Socialite::driver($provider)->redirect();
+            $driver = \Laravel\Socialite\Facades\Socialite::driver($provider);
+            // Use stateless for Google to avoid session/state issues behind proxies
+            // or when SameSite cookies block the state cookie. Stateful flow is
+            // still used for other providers by default.
+            if ($provider === 'google') {
+                return $driver->stateless()->redirect();
+            }
+
+            return $driver->redirect();
         }
 
         // Fallback: show message
@@ -269,7 +277,15 @@ class AuthController extends Controller
         logger()->info('Socialite provider config', ['provider' => $provider, 'config' => $svc]);
 
         try{
-            $socialUser = \Laravel\Socialite\Facades\Socialite::driver($provider)->user();
+            // Prefer stateless for Google to bypass state mismatch issues seen in
+            // environments with proxying or SameSite cookie restrictions. For
+            // other providers, keep the default (stateful) behavior.
+            $driver = \Laravel\Socialite\Facades\Socialite::driver($provider);
+            if ($provider === 'google') {
+                $socialUser = $driver->stateless()->user();
+            } else {
+                $socialUser = $driver->user();
+            }
         } catch(\Exception $e){
             // Log full exception for diagnostics (message, code and stack)
             logger()->error('Socialite callback exception (initial)', [
