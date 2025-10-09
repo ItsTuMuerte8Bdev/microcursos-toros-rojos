@@ -635,3 +635,33 @@ header,
 /* Si todavía existiera un estilo inline en elementos concretos, esta regla
    debería neutralizarlo; sólo retirar !important si quieres permitir
    personalizaciones locales. */
+
+/* Compact card styles for course listing (reduce visual weight like image 2) */
+.course-card .card {
+	border-radius: 10px;
+	overflow: hidden;
+	box-shadow: 0 6px 18px rgba(11,22,40,0.06);
+}
+.course-card .card-img-top {
+	height: 160px; /* reduce height to make cards more compact */
+	object-fit: cover;
+}
+.course-card .card-body { padding: 0.9rem; }
+.course-card .card-title { font-size: 0.98rem; margin-bottom: 0.35rem; }
+.course-card .card-text { font-size: 0.92rem; margin-bottom: 0.25rem; }
+.course-card .course-progress-placeholder { margin-bottom: 0.6rem; }
+
+/* Button grouping: on desktop keep buttons separated and aligned; mobile keep stacked/tight */
+.action-btn-row { display: flex; justify-content: flex-start; }
+.action-btn-group { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+@media (min-width: 992px) {
+	/* More spacing on desktop between the action buttons */
+	.action-btn-group a.btn, .action-btn-group button.btn { margin-right: 0.6rem; }
+}
+
+@media (max-width: 575.98px) {
+	.course-card .card-img-top { height: 140px; }
+	.action-btn-group { gap: 0.35rem; }
+}
+

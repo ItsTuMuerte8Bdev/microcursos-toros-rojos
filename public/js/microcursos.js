@@ -782,7 +782,7 @@
                     cursoIds.push(c.id_curso);
                     const catName = c.categoria ? (c.categoria.nombre || '') : '';
                     const card = document.createElement('div');
-                    card.className = 'col-md-6 course-card';
+                    card.className = 'col-md-4 course-card';
                     card.setAttribute('data-curso-id', c.id_curso);
                     if (c.id_categoria) card.setAttribute('data-category-id', c.id_categoria);
                     card.setAttribute('data-category-name', catName);
@@ -814,6 +814,7 @@
                                             <div class="action-btn-group">
                                                 <a href="/cursos/${c.id_curso}/ver" class="btn btn-outline-primary btn-sm">Ver</a>
                                                 <a href="/cursos/${c.id_curso}/continuar" class="btn btn-primary btn-sm">Continuar</a>
+                                                ${ (typeof window.CURRENT_USER !== 'undefined' && window.CURRENT_USER) ? `<button class="btn btn-sm btn-secondary download-course-btn" data-curso-id="${c.id_curso}">Descargar</button>` : '' }
                                             </div>
                                         </div>
                                     </div>
