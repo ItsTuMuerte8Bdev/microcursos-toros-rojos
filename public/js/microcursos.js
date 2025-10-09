@@ -786,29 +786,41 @@
                     card.setAttribute('data-curso-id', c.id_curso);
                     if (c.id_categoria) card.setAttribute('data-category-id', c.id_categoria);
                     card.setAttribute('data-category-name', catName);
-                    card.innerHTML = `
-                        <div class="card h-100">
-                            <img src="/images/Toro Cursos.png" class="card-img-top" alt="${(c.titulo||'')}">
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">${(c.titulo||'')}</h5>
-                                <p class="mb-1 text-muted small">Curso: ${(c.titulo||'—')}</p>
-                                <div class="mb-2">
-                                    <div class="mb-1" style="font-weight:700; color:#333;">Contenido del curso</div>
-                                    <p class="card-text text-muted">${(c.descripcion||'')}</p>
-                                </div>
-                                <div class="mt-auto">
-                                    <div class="mb-2 course-progress-placeholder">
-                                        <div class="progress" style="height:8px;"><div class="progress-bar" role="progressbar" style="width: 0%;"></div></div>
-                                        <small class="text-muted">--% completado</small>
+                    // Select image by category name (simple heuristics, same as Blade)
+                    (function(){
+                        var imgName = '/images/Toro Cursos.png';
+                        try{
+                            var cn = (catName||'').toLowerCase();
+                            if (cn.indexOf('dise') !== -1) imgName = '/images/Toro Diseño.png';
+                            else if (cn.indexOf('negoc') !== -1 || cn.indexOf('negocio') !== -1) imgName = '/images/Toro Negocios.png';
+                            else if (cn.indexOf('program') !== -1 || cn.indexOf('desarrol') !== -1) imgName = '/images/Toro Programador.png';
+                        }catch(e){}
+                        card.innerHTML = `
+                            <div class="card h-100">
+                                <img src="${imgName}" class="card-img-top" alt="${(c.titulo||'')}">
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title">${(c.titulo||'')}</h5>
+                                    <p class="mb-1 text-muted small">Curso: ${(c.titulo||'—')}</p>
+                                    <div class="mb-2">
+                                        <div class="mb-1" style="font-weight:700; color:#333;">Contenido del curso</div>
+                                        <p class="card-text text-muted">${(c.descripcion||'')}</p>
                                     </div>
-                                    <div class="d-flex justify-content-between">
-                                        <a href="/cursos/${c.id_curso}/ver" class="btn btn-outline-primary btn-sm">Ver</a>
-                                        <a href="/cursos/${c.id_curso}/continuar" class="btn btn-primary btn-sm">Continuar</a>
+                                    <div class="mt-auto">
+                                        <div class="mb-2 course-progress-placeholder">
+                                            <div class="progress" style="height:8px;"><div class="progress-bar" role="progressbar" style="width: 0%;"></div></div>
+                                            <small class="text-muted">--% completado</small>
+                                        </div>
+                                        <div class="d-flex action-btn-row">
+                                            <div class="action-btn-group">
+                                                <a href="/cursos/${c.id_curso}/ver" class="btn btn-outline-primary btn-sm">Ver</a>
+                                                <a href="/cursos/${c.id_curso}/continuar" class="btn btn-primary btn-sm">Continuar</a>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    })();
                     list.appendChild(card);
                 });
                 // re-attach handlers

@@ -60,9 +60,22 @@
                 @php $cursoIds = []; @endphp
                 @forelse($cursos as $curso)
                     @php $cursoIds[] = $curso->id_curso; @endphp
+                    @php
+                        // Selección de imagen por categoría (fallback a Toro Cursos.png)
+                        $catName = optional($curso->categoria)->nombre ?? '';
+                        $imgName = 'Toro Cursos.png';
+                        if (stripos($catName, 'dise') !== false) {
+                            $imgName = 'Toro Diseño.png';
+                        } elseif (stripos($catName, 'negoc') !== false || stripos($catName, 'negocio') !== false) {
+                            $imgName = 'Toro Negocios.png';
+                        } elseif (stripos($catName, 'program') !== false || stripos($catName, 'desarrol') !== false) {
+                            $imgName = 'Toro Programador.png';
+                        }
+                        $imgPath = asset('images/' . $imgName);
+                    @endphp
                     <div class="col-md-6 course-card" data-curso-id="{{ $curso->id_curso }}" data-category-id="{{ $curso->id_categoria }}" data-category-name="{{ optional($curso->categoria)->nombre }}">
                         <div class="card h-100">
-                            <img src="{{ asset('images/Toro Cursos.png') }}" class="card-img-top" alt="{{ $curso->titulo }}">
+                            <img src="{{ $imgPath }}" class="card-img-top" alt="{{ $curso->titulo }}">
                             <div class="card-body d-flex flex-column">
                                 <!-- Reordenado: Título arriba, luego meta (módulo/curso), luego contenido/descrpción -->
                                 <h5 class="card-title">{{ $curso->titulo }}</h5>
@@ -90,20 +103,22 @@
                                     <p class="card-text text-muted">{{ $curso->descripcion }}</p>
                                 </div>
 
-                                <div class="mt-auto">
+                                    <div class="mt-auto">
                                     <div class="mb-2 course-progress-placeholder">
                                         <div class="progress" style="height:8px;">
                                             <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                         <small class="text-muted">--% completado</small>
                                     </div>
-                                    <div class="d-flex justify-content-between">
-                                        <a href="{{ url('/cursos/'.$curso->id_curso.'/ver') }}" class="btn btn-outline-primary btn-sm">Ver</a>
-                                        <a href="{{ url('/cursos/'.$curso->id_curso.'/continuar') }}" class="btn btn-primary btn-sm">Continuar</a>
-                                        @if(auth()->check())
-                                            <button class="btn btn-sm btn-secondary download-course-btn" data-curso-id="{{ $curso->id_curso }}">Descargar</button>
-                                        @endif
-                                    </div>
+                                        <div class="d-flex action-btn-row">
+                                            <div class="action-btn-group">
+                                                <a href="{{ url('/cursos/'.$curso->id_curso.'/ver') }}" class="btn btn-outline-primary btn-sm">Ver</a>
+                                                <a href="{{ url('/cursos/'.$curso->id_curso.'/continuar') }}" class="btn btn-primary btn-sm">Continuar</a>
+                                                @if(auth()->check())
+                                                    <button class="btn btn-sm btn-secondary download-course-btn" data-curso-id="{{ $curso->id_curso }}">Descargar</button>
+                                                @endif
+                                            </div>
+                                        </div>
                                 </div>
                             </div>
                         </div>

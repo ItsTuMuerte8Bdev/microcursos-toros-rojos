@@ -264,10 +264,10 @@
 
     <!-- Unified contact footer (Los Toros Rojos) -->
     <footer id="site-footer" class="site-footer">
-        <div class="container py-3" style="background-color:var(--color-dark); color:var(--color-light); min-height:18vh;">
+        <div class="container py-3" style="background-color:var(--color-dark); color:var(--color-white); min-height:12vh; padding-top:0.6rem; padding-bottom:0.6rem;">
             <div class="row align-items-center" style="font-size:0.95rem;">
                 <div class="col-md-6 d-flex gap-3 align-items-center">
-                    <img src="{{ asset('images/Logo General.png') }}" alt="Los Toros Rojos / Logo" style="height:64px; width:64px; object-fit:cover; border-radius:8px;">
+                    <img src="{{ asset('images/Logo General.png') }}" alt="Los Toros Rojos / Logo" style="height:48px; width:48px; object-fit:cover; border-radius:8px;">
                     <div>
                         <h5 class="mb-1" style="color:var(--color-light); font-size:1.1rem;">Los Toros Rojos</h5>
                         <p class="mb-0" style="line-height:1.1;">Av. Insurgentes Sur 704, Col. Hipódromo — Benito Juárez, Ciudad de México, CDMX 06100</p>

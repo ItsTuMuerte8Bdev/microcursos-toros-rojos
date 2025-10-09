@@ -121,22 +121,57 @@ form label {
 	text-align: center;
 	padding: 0; /* el container interno controla padding */
 	font-family: 'Orbitron', 'Arial Black', Arial, sans-serif;
-	font-size: 1rem;
+	font-size: 0.9rem;
 	letter-spacing: 1px;
 	position: static;
 	box-shadow: none;
 }
 
 /* footer inner container adjustments to match design */
+.site-footer {
+	/* Ensure footer background spans full width and blends with inner container */
+	background-color: var(--color-dark);
+}
+
 .site-footer .container {
-	padding-top: 1.25rem;
-	padding-bottom: 0.75rem;
+	padding-top: 0.6rem;
+	padding-bottom: 0.5rem;
 }
 .site-footer .container .row > div {
-	color: var(--color-light);
+	color: rgba(255,255,255,0.95);
 }
 .site-footer .container img {
-	max-height: 84px;
+	max-height: 48px;
+}
+
+.site-footer a {
+	color: #ffffff;
+	text-decoration: underline;
+	font-weight: 700;
+}
+
+.site-footer p, .site-footer small { color: rgba(255,255,255,0.95); }
+
+.site-footer .footer-copyright {
+	font-size: 0.78rem;
+	color: rgba(255,255,255,0.9);
+	margin-top: 6px;
+}
+
+/* Force smaller headings inside the footer and improve spacing */
+#site-footer h5, .site-footer h5, #site-footer h6, .site-footer h6 {
+	font-size: 0.95rem !important; /* override inline 1.1rem */
+	margin: 0 0 6px 0 !important;
+	font-weight: 700 !important;
+	color: rgba(255,255,255,0.96) !important;
+}
+
+/* Even smaller on mobile */
+@media (max-width: 767.98px) {
+	#site-footer h5, .site-footer h5, #site-footer h6, .site-footer h6 {
+		font-size: 0.9rem !important;
+	}
+	.site-footer .container img { max-height: 40px; }
 }
 
 .success-popup {
@@ -340,6 +375,17 @@ form label {
 .site-footer { font-size: 0.95rem; }
 .site-footer .container { padding-top: 0.6rem; padding-bottom: 0.6rem; }
 .site-footer p, .site-footer small { margin: 0; }
+
+/* Footer visual tweaks */
+#site-footer { background-color: var(--color-dark); }
+#site-footer .container { color: var(--color-white); }
+#site-footer .footer-copyright {
+	font-size: 0.82rem;
+	color: rgba(255,255,255,0.9);
+}
+#site-footer .col-md-6 p, #site-footer .col-md-6 h5, #site-footer .col-md-6 h6 {
+	color: rgba(255,255,255,0.95) !important;
+}
 
 /* Alineación del contenido principal */
 main.container h1 { text-align: left !important; }
@@ -575,3 +621,17 @@ header,
 		right: 12px; left: auto; 
 	}
 }
+
+/* --------- Footer: forzar tamaño de fuente para párrafos y small ---------- */
+/* Evita que la regla global `p { font-size: 1.1rem; }` la sobreescriba. */
+.site-footer p,
+.site-footer small,
+#site-footer p,
+#site-footer small {
+	font-size: 0.95rem !important;
+	line-height: 1.25 !important;
+}
+
+/* Si todavía existiera un estilo inline en elementos concretos, esta regla
+   debería neutralizarlo; sólo retirar !important si quieres permitir
+   personalizaciones locales. */
