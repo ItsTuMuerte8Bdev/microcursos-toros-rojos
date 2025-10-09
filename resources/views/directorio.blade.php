@@ -19,7 +19,7 @@
             <div class="col">
                 <div class="card h-100 text-center">
                     <div class="card-body">
-                        <img src="{{ asset('images/Logo General.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid #b30000;">
+                        <img src="{{ asset('images/Logo General.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid var(--color-primary);">
                         <div class="person-details">
                             <h5 class="card-title mb-1">Jovan Bautista</h5>
                             <p class="text-muted mb-1">Director General</p>
@@ -34,7 +34,7 @@
             <div class="col">
                 <div class="card h-100 text-center">
                     <div class="card-body">
-                        <img src="{{ asset('images/Toro Cursos.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid #b30000;">
+                        <img src="{{ asset('images/Toro Cursos.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid var(--color-primary);">
                         <div class="person-details">
                             <h5 class="card-title mb-1">María López</h5>
                             <p class="text-muted mb-1">Jefa de Contenido</p>
@@ -49,7 +49,7 @@
             <div class="col">
                 <div class="card h-100 text-center">
                     <div class="card-body">
-                        <img src="{{ asset('images/Toro Contacto.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid #b30000;">
+                        <img src="{{ asset('images/Toro Contacto.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid var(--color-primary);">
                         <div class="person-details">
                             <h5 class="card-title mb-1">Carlos Méndez</h5>
                             <p class="text-muted mb-1">Responsable de Operaciones</p>
@@ -64,7 +64,7 @@
             <div class="col">
                 <div class="card h-100 text-center">
                     <div class="card-body">
-                        <img src="{{ asset('images/Toro Cursos.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid #b30000;">
+                        <img src="{{ asset('images/Toro Cursos.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid var(--color-primary);">
                         <div class="person-details">
                             <h5 class="card-title mb-1">Lucía Ramos</h5>
                             <p class="text-muted mb-1">Coordinadora de Formación</p>
@@ -78,7 +78,7 @@
             <div class="col">
                 <div class="card h-100 text-center">
                     <div class="card-body">
-                        <img src="{{ asset('images/Toro Contacto.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid #b30000;">
+                        <img src="{{ asset('images/Toro Contacto.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid var(--color-primary);">
                         <div class="person-details">
                             <h5 class="card-title mb-1">Diego Vargas</h5>
                             <p class="text-muted mb-1">Soporte Técnico</p>
@@ -92,7 +92,7 @@
             <div class="col">
                 <div class="card h-100 text-center">
                     <div class="card-body">
-                        <img src="{{ asset('images/Logo General.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid #b30000;">
+                        <img src="{{ asset('images/Logo General.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid var(--color-primary);">
                         <div class="person-details">
                             <h5 class="card-title mb-1">Alejandra Cruz</h5>
                             <p class="text-muted mb-1">Relaciones Públicas</p>

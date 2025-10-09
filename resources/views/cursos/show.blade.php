@@ -6,7 +6,7 @@
     <div class="course-page">
         <style>
             /* Scoped overrides sólo para la vista de curso: prioridad alta pero localizada */
-            .course-page .course-header .lead { color: #ffffff !important; }
+            .course-page .course-header .lead { color: var(--color-white) !important; }
             .course-page .module-card .card-body p { color: #222222 !important; }
             .course-page .module-card .list-group .small { color: #333333 !important; }
             /* Asegurar que los badges/pequeños snippets no queden demasiado claros */
@@ -35,7 +35,7 @@
         <div>
             <h1 class="mb-0">{{ $curso->titulo }}</h1>
             {{-- descripción: más visible: tamaño y contraste --}}
-            <p class="lead text-light-emphasis" style="max-width:800px; line-height:1.4; font-size:1.05rem; color:#ffffff;">{{ $curso->descripcion }}</p>
+            <p class="lead text-light-emphasis" style="max-width:800px; line-height:1.4; font-size:1.05rem; color:var(--color-white);">{{ $curso->descripcion }}</p>
         </div>
         <div>
             <a href="{{ url('/cursos') }}" class="btn btn-outline-secondary">Volver</a>

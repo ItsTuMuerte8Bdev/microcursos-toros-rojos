@@ -19,7 +19,7 @@
         .main-menu .dropdown-menu {
             position: absolute;
             z-index: 3000;
-            background: #ffffff !important; /* ensure white background for readability */
+            background: var(--color-white) !important; /* ensure white background for readability */
             color: #212529 !important;
             min-width: 220px !important;
             border-radius: 10px;
@@ -60,7 +60,7 @@
                     top: 100% !important;
                     left: 0 !important;
                     right: 0 !important;
-                    background: #b30000 !important;
+                    background: var(--color-primary) !important;
                     padding: 12px !important;
                     display: none !important;
                     z-index: 1100 !important;
@@ -140,8 +140,8 @@
         .main-menu .dropdown-menu .dropdown-divider { color: #6c757d !important; }
     /* Estilo del botón de cerrar sesión dentro del dropdown para mayor visibilidad */
         .main-menu .dropdown-menu .btn {
-            background-color: #dc3545 !important;
-            color: #fff !important;
+            background-color: var(--color-accent) !important;
+            color: var(--color-white) !important;
             border: none !important;
             display: block !important;
             margin: 0.25rem 0 !important;
@@ -260,12 +260,12 @@
 
     <!-- Unified contact footer (Los Toros Rojos) -->
     <footer id="site-footer" class="site-footer">
-        <div class="container py-3" style="background-color:#033f4a; color:#e6f7fb; min-height:18vh;">
+        <div class="container py-3" style="background-color:var(--color-dark); color:var(--color-light); min-height:18vh;">
             <div class="row align-items-center" style="font-size:0.95rem;">
                 <div class="col-md-6 d-flex gap-3 align-items-center">
                     <img src="{{ asset('images/Logo General.png') }}" alt="Los Toros Rojos / Logo" style="height:64px; width:64px; object-fit:cover; border-radius:8px;">
                     <div>
-                        <h5 class="mb-1" style="color:#00c1d8; font-size:1.1rem;">Los Toros Rojos</h5>
+                        <h5 class="mb-1" style="color:var(--color-light); font-size:1.1rem;">Los Toros Rojos</h5>
                         <p class="mb-0" style="line-height:1.1;">Av. Insurgentes Sur 704, Col. Hipódromo — Benito Juárez, Ciudad de México, CDMX 06100</p>
                         <p class="mb-0" style="line-height:1.1;">Tel: +52 (55) 1234 5678 — Email: <a href="mailto:contacto@torosrojos.com" class="text-white">contacto@torosrojos.com</a></p>
                     </div>
@@ -629,11 +629,11 @@
                 el.style.fontWeight = '600';
 
                 if(type === 'warning'){
-                    el.style.background = '#ff9f1c';
-                    el.style.border = '1px solid #e88a00';
+                    el.style.background = 'var(--color-warning)';
+                    el.style.border = '1px solid rgba(0,0,0,0.08)';
                 } else {
-                    el.style.background = '#28a745';
-                    el.style.border = '1px solid #1f7a34';
+                    el.style.background = 'var(--color-success)';
+                    el.style.border = '1px solid rgba(0,0,0,0.06)';
                 }
 
                 const span = document.createElement('div');
@@ -1099,8 +1099,8 @@
                     container.innerHTML = '';
                     const el = document.createElement('div');
                     el.className = 'alert';
-                    el.style.background = (type==='success' ? '#28a745' : '#ff9f1c');
-                    el.style.color = '#fff';
+                    el.style.background = (type==='success' ? 'var(--color-success)' : 'var(--color-warning)');
+                    el.style.color = 'var(--color-white)';
                     el.style.padding = '8px 12px';
                     el.style.borderRadius = '8px';
                     el.style.maxWidth = '980px';
@@ -1199,8 +1199,8 @@
                                         if(container){
                                             container.innerHTML = '';
                                             const el = document.createElement('div');
-                                            el.style.background = '#007bff';
-                                            el.style.color = '#fff';
+                                            el.style.background = 'var(--color-light)';
+                                            el.style.color = 'var(--color-white)';
                                             el.style.padding = '10px 14px';
                                             el.style.borderRadius = '8px';
                                             el.style.maxWidth = '980px';
