@@ -4,6 +4,15 @@
     // re-ejecutarla tras navegaciones parciales (PJAX/Turbolinks/HTMX)
     // o cuando el DOM esté listo.
     function initMicrocursos() {
+        // small debounce helper to avoid excessive work while typing
+        function debounce(fn, wait){
+            let t = null;
+            return function(){
+                const ctx = this, args = arguments;
+                clearTimeout(t);
+                t = setTimeout(function(){ fn.apply(ctx, args); }, wait);
+            };
+        }
         function $(sel) { return document.querySelector(sel); }
         function $all(sel) { return Array.from(document.querySelectorAll(sel)); }
 
@@ -681,11 +690,16 @@
     }
 
     // Attach click handlers to course cards to open the detail modal
-    (function attachCourseCardDetailHandlers(){
+    // This is idempotent: it won't attach multiple handlers to the same card.
+    function attachCourseCardDetailHandlers(){
         const cards = Array.from(document.querySelectorAll('.course-card'));
         if (!cards.length) return;
         cards.forEach(card=>{
-            // only open modal when clicking the card (avoid clicks on buttons inside card)
+            try{
+                if (card.__courseDetailBound) return; // already bound
+                card.__courseDetailBound = true;
+            }catch(e){ /* ignore */ }
+
             card.addEventListener('click', function(e){
                 // if click inside an interactive element with class 'no-detail', skip
                 if (e.target.closest('.no-detail') || e.target.tagName === 'A' || e.target.closest('button')) return;
@@ -705,7 +719,9 @@
                 showCourseDetailModal({ id: cursoId, title: title, desc: desc, content: content });
             });
         });
-    })();
+    }
+    // call once on init
+    attachCourseCardDetailHandlers();
 
     // Try populate curso progress on load if curso id present
     if (window.CURSO_ID) fetchCourseProgress(window.CURSO_ID, window.CURRENT_USER);
@@ -824,15 +840,16 @@
                     })();
                     list.appendChild(card);
                 });
-                // re-attach handlers
-                try{ initMicrocursos(); }catch(e){}
+                // re-attach handlers (idempotent) without re-running the whole init which would
+                // re-bind inputs and may cause blur/focus loss.
+                try{ if (typeof attachCourseCardDetailHandlers === 'function') attachCourseCardDetailHandlers(); }catch(e){}
 
                 // Disable status controls while we fetch progress to avoid race conditions
                 try{
                     isFetchingCourses = true;
                     if (filterCompleted) filterCompleted.disabled = true;
                     if (filterInProgress) filterInProgress.disabled = true;
-                    if (searchInput) searchInput.disabled = true;
+                    // Keep searchInput enabled to preserve focus/selection while fetching
                 }catch(e){}
 
                 // fetch batch progress for visible cursoIds and then apply client filters
@@ -841,30 +858,39 @@
                         fetchBatchProgress(cursoIds, window.CURRENT_USER)
                         .then(()=>{
                             // re-enable controls and apply filters now that percents are set
-                            try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; if (searchInput) searchInput.disabled = false; }catch(e){}
+                            try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; }catch(e){}
                             try{ applyFilters(); }catch(e){}
                         }).catch((err)=>{
-                            try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; if (searchInput) searchInput.disabled = false; }catch(e){}
+                            try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; }catch(e){}
                             try{ applyFilters(); }catch(e){}
                         });
                     } else {
                         // nothing to fetch; ensure controls re-enabled and filters applied
-                        try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; if (searchInput) searchInput.disabled = false; }catch(e){}
+                        try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; }catch(e){}
                         try{ applyFilters(); }catch(e){}
                     }
                 }catch(e){
-                    try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; if (searchInput) searchInput.disabled = false; }catch(err){}
+                    try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; }catch(err){}
                     try{ applyFilters(); }catch(err){}
                 }
             }).catch(err=>{
                 console.warn('Fetch cursos failed, falling back to client-side filter', err);
                 // fallback to client-side filter and ensure controls are enabled
-                try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; if (searchInput) searchInput.disabled = false; }catch(e){}
+                try{ isFetchingCourses = false; if (filterCompleted) filterCompleted.disabled = false; if (filterInProgress) filterInProgress.disabled = false; }catch(e){}
                 applyFilters();
             });
     }
 
-    if (searchInput) searchInput.addEventListener('input', function(){ fetchAndRenderCourses(); });
+    if (searchInput) {
+        const debouncedFetch = debounce(function(){
+            // preserve selectionStart/End so user doesn't lose caret while typing
+            const sStart = searchInput.selectionStart, sEnd = searchInput.selectionEnd, hadFocus = (document.activeElement === searchInput);
+            fetchAndRenderCourses();
+            // try to restore focus/selection shortly after DOM operations
+            setTimeout(function(){ try{ if (hadFocus) { searchInput.focus(); if (typeof sStart === 'number' && typeof sEnd === 'number') searchInput.setSelectionRange(sStart, sEnd); } }catch(e){} }, 50);
+        }, 260);
+        searchInput.addEventListener('input', debouncedFetch);
+    }
     // Status checkboxes are client-side filters (they depend on loaded progress metadata).
     // Don't re-query the server when user toggles them; instead run the local filter.
     if (filterCompleted) filterCompleted.addEventListener('change', function(){ try{ applyFilters(); }catch(e){} });
