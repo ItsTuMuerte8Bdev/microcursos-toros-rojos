@@ -11,13 +11,31 @@
 	/* Estado / utilitarios */
 	--color-success: #28a745; /* kept same for success states */
 	--color-warning: #ff9f1c; /* kept same for warning states */
+
+	/* adicionales */
+	--color-muted: #f3f4f6;
+	--color-text: #1b263b;
+	/* Fondo principal de la página (blanquisco) */
+	--page-bg: #dafeff;
+	--color-muted-dark: #6c757d;
+	--color-success-dark: #218838;
+	--brand-google: #db4437;
+	--brand-google-dark: #c33b30;
+	--brand-github: #333333;
 }
+/* Using Google Fonts (Poppins + Roboto) loaded via CDN in the layout head.
+   The local Neuropolitical @font-face was intentionally removed to avoid
+   requiring local font files. If you still want Neuropolitical later,
+   re-add a @font-face or a CDN that provides it. */
+
 body {
-	background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-light) 60%, var(--color-white) 100%);
+	/* Light / off-white page background for cleaner look */
+	background: var(--page-bg);
 	margin: 0;
 	padding: 0;
 	min-height: 100vh;
-	font-family: Arial, sans-serif;
+	/* Roboto for general text for good readability */
+	font-family: 'Roboto', Arial, sans-serif;
 }
 
 /* Títulos: estilo destacado para H1 */
@@ -25,27 +43,28 @@ h1 {
 	color: var(--color-accent);
 	margin-top: 40px;
 	text-align: center;
-	font-family: 'Orbitron', 'Arial Black', Arial, sans-serif;
+	/* Use Poppins for headings to get a modern, geometric display */
+	font-family: 'Poppins', 'Orbitron', 'Arial Black', Arial, sans-serif;
 }
 
 /* Párrafos: fuente modernizada y legibilidad */
 p {
 	font-family: 'Roboto', Arial, sans-serif;
-	color: #f3f4f6;
+	color: var(--color-text);
 	font-size: 1.1rem;
 	text-align: center;
 }
 
-/* Subtítulos (h5) en dorado para destacar */
+/* Subtítulos (h5) — más visibles sobre fondo claro */
 h5 {
-	color: var(--color-light);
+	color: var(--color-dark);
 	font-weight: 700;
 	margin-top: 1rem;
 }
 
 /* Mejora legibilidad de textos principales en pantallas grandes */
 .container .lead {
-	color: #f3f4f6;
+	color: var(--color-text);
 	font-size: 1.05rem;
 	line-height: 1.6;
 	text-align: left;
@@ -69,7 +88,7 @@ h5 {
 
 /* Estilos de tarjetas / formularios */
 form {
-	background: #fff;
+	background: var(--color-white);
 	padding: 56px 24px 32px 24px;
 	border-radius: 12px;
 	box-shadow: 0 4px 24px rgba(0,0,0,0.12);
@@ -130,8 +149,8 @@ form label {
 	z-index: 9999;
 }
 .success-popup-content {
-	background: #fff;
-	color: #1b263b;
+	background: var(--color-white);
+	color: var(--color-text);
 	padding: 32px 24px;
 	border-radius: 14px;
 	box-shadow: 0 8px 32px rgba(0,0,0,0.22);
@@ -142,7 +161,7 @@ form label {
 .bs-check-icon {
 	display: block;
 	margin: 0 auto 10px auto;
-	color: #28a745; /* verde Bootstrap */
+	color: var(--color-success); /* verde Bootstrap */
 	animation: pop-in 0.5s cubic-bezier(.68,-0.55,.27,1.55);
 }
 @keyframes pop-in {
@@ -151,15 +170,15 @@ form label {
 	100% { transform: scale(1); }
 }
 .success-title {
-	font-family: 'Orbitron', 'Arial Black', Arial, sans-serif;
-	color: #28a745;
+	font-family: 'Poppins', 'Audiowide', 'Orbitron', 'Arial Black', Arial, sans-serif;
+	color: var(--color-success);
 	margin-bottom: 12px;
 }
 .success-btn {
 	margin-top: 18px;
 	padding: 8px 24px;
-	background: #28a745;
-	color: #fff;
+	background: var(--color-success);
+	color: var(--color-white);
 	border: none;
 	border-radius: 8px;
 	font-size: 1rem;
@@ -168,7 +187,7 @@ form label {
 	transition: background 0.2s;
 }
 .success-btn:hover {
-	background: #218838;
+	background: var(--color-success-dark);
 }
 .success-message {
 	color: #222;
