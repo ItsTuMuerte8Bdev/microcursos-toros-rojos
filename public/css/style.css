@@ -22,6 +22,8 @@
 	--brand-google: #db4437;
 	--brand-google-dark: #c33b30;
 	--brand-github: #333333;
+	/* Fondo más neutro para las tarjetas, menos contraste con la paleta principal */
+	--card-bg: #f7fbfc; /* ligero gris-azulado, cerca de --page-bg pero más neutro */
 }
 /* Using Google Fonts (Poppins + Roboto) loaded via CDN in the layout head.
    The local Neuropolitical @font-face was intentionally removed to avoid
@@ -88,10 +90,12 @@ h5 {
 
 /* Estilos de tarjetas / formularios */
 form {
-	background: var(--color-white);
+	/* Unificar visual con las tarjetas: fondo neutro, borde y sombra suaves */
+	background: var(--card-bg);
+	border: 1px solid rgba(11,22,40,0.04);
 	padding: 56px 24px 32px 24px;
 	border-radius: 12px;
-	box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+	box-shadow: 0 6px 18px rgba(11,22,40,0.04);
 	width: 100%;
 	max-width: 400px;
 	margin-bottom: 32px;
@@ -259,7 +263,7 @@ form label {
 	filter: drop-shadow(0 4px 16px rgba(255,25,86,0.28)); /* sombra con --color-primary */
 }
 
-.card { border-radius: 12px; background: var(--color-white); }
+.card { border-radius: 12px; background: var(--card-bg); border: 1px solid rgba(11,22,40,0.04); box-shadow: 0 6px 18px rgba(11,22,40,0.04); }
 .card .card-body { padding: 1.25rem; display:flex; flex-direction:column; align-items:center; gap:0.4rem; justify-content:flex-start; }
 .card .card-title { color: var(--color-dark); font-weight:700; font-size:1.05rem; margin-top:0.25rem; }
 .card .text-muted { color: #6c757d; }
@@ -640,7 +644,9 @@ header,
 .course-card .card {
 	border-radius: 10px;
 	overflow: hidden;
-	box-shadow: 0 6px 18px rgba(11,22,40,0.06);
+	background: var(--card-bg);
+	border: 1px solid rgba(11,22,40,0.04);
+	box-shadow: 0 6px 18px rgba(11,22,40,0.04);
 }
 .course-card .card-img-top {
 	height: 160px; /* reduce height to make cards more compact */
