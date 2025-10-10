@@ -4,6 +4,37 @@
 
 @section('content')
     <div class="course-page">
+        {{-- Onboarding lateral: navegar entre cursos (similar al panel de lecciones) --}}
+        <div id="onboardingPanel" aria-hidden="false" style="position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:1050;display:flex;align-items:flex-start;">
+            <div id="onboardingToggle" role="button" aria-label="Mostrar u ocultar índice" style="background:transparent;border-radius:0 6px 6px 0;padding:10px 8px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+                <div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--bs-primary,#0d6efd);color:#fff;border-radius:6px;font-weight:700;">&gt;</div>
+            </div>
+            <div id="onboardingBody" style="width:320px;max-height:70vh;background:#fff;border-radius:6px;padding:14px;margin-left:8px;box-shadow:0 8px 24px rgba(15,23,42,0.08);overflow:auto;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <div style="font-weight:700;color:var(--bs-dark,#212529)">Cursos</div>
+                    <small class="text-muted">Explorar</small>
+                </div>
+                <div id="onboardingList">
+                    @foreach($cursosList as $c)
+                        @php $isActive = ((int)$c->id_curso === (int)$curso->id_curso); @endphp
+                        <div class="onb-item" style="padding:8px;border-radius:6px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;background:{{ $isActive ? '#f0f8ff' : 'transparent' }};">
+                            <div style="flex:1;min-width:0;">
+                                <a href="{{ route('cursos.show', ['id' => $c->id_curso]) }}" style="color:{{ $isActive ? 'var(--bs-primary,#0d6efd)' : 'var(--bs-dark,#212529)' }};font-weight:{{ $isActive ? '700' : '600' }};text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">{{ $c->titulo }}</a>
+                                <div class="small text-muted">{{ Str::limit(strip_tags($c->descripcion), 60) }}</div>
+                            </div>
+                            <div style="margin-left:8px;">
+                                @if($isActive)
+                                    <span class="badge bg-success">Ahora</span>
+                                @else
+                                    <span class="badge bg-secondary">&nbsp;</span>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                <div id="cursoProgress" class="mt-2"></div>
+            </div>
+        </div>
         <style>
             /* Scoped overrides sólo para la vista de curso: prioridad alta pero localizada */
             .course-page .course-header .lead { color: var(--color-white) !important; }
@@ -193,6 +224,41 @@
                         markNotDownloaded();
                     }
                 }catch(err){}
+            });
+        })();
+    </script>
+    <script>
+        // Toggle para el panel de onboarding: muestra/oculta y guarda preferencia (misma lógica que en la vista de lecciones)
+        (function(){
+            const panel = document.getElementById('onboardingPanel');
+            if(!panel) return;
+            const body = document.getElementById('onboardingBody');
+            const toggle = document.getElementById('onboardingToggle');
+            const arrow = toggle && toggle.querySelector('div');
+            const STORAGE_KEY = 'mc_onboarding_visible';
+
+            function setVisible(visible, save=true){
+                if(visible){
+                    body.style.display = 'block';
+                    panel.style.width = '';
+                    if(arrow) arrow.innerHTML = '&gt;';
+                    panel.setAttribute('aria-hidden','false');
+                } else {
+                    body.style.display = 'none';
+                    if(arrow) arrow.innerHTML = '&lt;';
+                    panel.setAttribute('aria-hidden','true');
+                }
+                if(save) localStorage.setItem(STORAGE_KEY, visible ? '1' : '0');
+            }
+
+            // Init from localStorage (default: visible)
+            const pref = localStorage.getItem(STORAGE_KEY);
+            const visible = pref === null ? true : pref === '1';
+            setVisible(visible, false);
+
+            toggle.addEventListener('click', function(e){
+                const nowVisible = panel.getAttribute('aria-hidden') === 'false';
+                setVisible(!nowVisible);
             });
         })();
     </script>

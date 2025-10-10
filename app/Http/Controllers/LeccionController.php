@@ -55,7 +55,9 @@ class LeccionController extends Controller
                 ->first();
         }
 
-        return view('lecciones.view', compact('leccion', 'prev', 'next'));
+        // also pass the ordered list of lessons in the current course so the view can render
+        // an onboarding / índice lateral con todas las lecciones del curso
+        return view('lecciones.view', compact('leccion', 'prev', 'next', 'leccionesEnCurso'));
     }
 
     // Optionally record local progress (not used directly here)

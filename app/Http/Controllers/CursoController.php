@@ -103,7 +103,9 @@ class CursoController extends Controller
             }
         }
 
-        return view('cursos.show', compact('curso', 'moduleProgress'));
+        // also pass a list of cursos so the blade can render a courses index in the onboarding panel
+        $cursosList = Curso::orderBy('titulo')->get();
+        return view('cursos.show', compact('curso', 'moduleProgress', 'cursosList'));
     }
 
     // Redirect user to next incomplete lesson for this course, or to course view if none
