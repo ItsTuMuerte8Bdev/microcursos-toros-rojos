@@ -10,7 +10,7 @@
         </div>
         <div class="d-flex gap-2 align-items-center">
             <input class="form-control" id="searchCourses" placeholder="Buscar cursos..." style="min-width:300px;" />
-            <a href="{{ url('/cursos/crear') }}" class="btn btn-primary">Crear curso</a>
+            <a href="{{ url('/cursos/crear') }}" class="btn btn--primary">Crear curso</a>
         </div>
     </div>
 
@@ -112,10 +112,10 @@
                                     </div>
                                         <div class="d-flex action-btn-row">
                                             <div class="action-btn-group">
-                                                <a href="{{ url('/cursos/'.$curso->id_curso.'/ver') }}" class="btn btn-outline-primary btn-sm">Ver</a>
-                                                <a href="{{ url('/cursos/'.$curso->id_curso.'/continuar') }}" class="btn btn-primary btn-sm">Continuar</a>
+                                                <a href="{{ url('/cursos/'.$curso->id_curso.'/ver') }}" class="btn btn--video btn-sm">Ver</a>
+                                                <a href="{{ url('/cursos/'.$curso->id_curso.'/continuar') }}" class="btn btn--primary btn-sm">Continuar</a>
                                                 @if(auth()->check())
-                                                    <button class="btn btn-sm btn-secondary download-course-btn" data-curso-id="{{ $curso->id_curso }}">Descargar</button>
+                                                    <button class="btn btn-sm btn--status download-course-btn" data-curso-id="{{ $curso->id_curso }}">Descargar</button>
                                                 @endif
                                             </div>
                                         </div>
@@ -258,7 +258,7 @@
                     const cid = String(card.getAttribute('data-curso-id'));
                     const btn = card.querySelector('.download-course-btn');
                     // add badge on card
-                    if(ids.includes(cid)){
+                        if(ids.includes(cid)){
                         // add badge if not present
                         if(!card.querySelector('.download-badge')){
                             const badge = document.createElement('div');
@@ -274,7 +274,7 @@
                             if(cardEl) cardEl.appendChild(badge);
                         }
                         // update download button if present
-                        if(btn){ btn.classList.remove('btn-secondary'); btn.classList.add('btn-success'); btn.innerText = 'Descargado'; btn.disabled = true; try{ btn.classList.add('download-animated'); setTimeout(()=>btn.classList.remove('download-animated'),900); }catch(e){} }
+                        if(btn){ btn.classList.remove('btn--status'); btn.classList.add('btn--status','is-downloaded'); btn.innerText = 'Descargado'; btn.disabled = true; try{ btn.classList.add('download-animated'); setTimeout(()=>btn.classList.remove('download-animated'),900); }catch(e){} }
                     }
                 });
             }
@@ -295,7 +295,7 @@
                         navigator.serviceWorker.controller.postMessage({ action: 'cache-resources', resources: payload.resources });
                     }
                     btn.innerText = 'Descargado';
-                    btn.classList.remove('btn-secondary'); btn.classList.add('btn-success');
+                    btn.classList.remove('btn--status'); btn.classList.add('btn--status','is-downloaded');
                     btn.disabled = true;
                     setTimeout(()=>{ try{ annotateDownloadedState(); }catch(e){} }, 600);
                 }catch(err){ console.warn('download failed', err); btn.innerText='Error'; setTimeout(()=>{ btn.innerText = 'Descargar'; btn.disabled = false; },1500); }
@@ -322,7 +322,7 @@
                         const b = card.querySelector('.download-badge'); if(b) b.remove();
                         // reset button if present
                         const btn = card.querySelector('.download-course-btn');
-                        if(btn){ try{ btn.classList.remove('btn-success'); btn.classList.add('btn-secondary'); btn.innerText = 'Descargar'; btn.disabled = false; }catch(e){} }
+                        if(btn){ try{ btn.classList.remove('btn--status','is-downloaded'); btn.classList.add('btn--status'); btn.innerText = 'Descargar'; btn.disabled = false; }catch(e){} }
                     });
                     // Re-apply offline filter as the set of downloaded ids changed
                     try{ applyOfflineDownloadedFilter(); }catch(e){}

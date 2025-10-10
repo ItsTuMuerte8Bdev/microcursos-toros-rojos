@@ -10,7 +10,7 @@
         </div>
         <div class="d-flex gap-2">
             <input class="form-control" id="searchPeople" placeholder="Buscar por nombre o puesto..." style="min-width:300px;" />
-            <button id="clearSearch" class="btn btn-outline-secondary">Limpiar</button>
+            <button id="clearSearch" class="btn btn--simple">Limpiar</button>
         </div>
     </div>
 

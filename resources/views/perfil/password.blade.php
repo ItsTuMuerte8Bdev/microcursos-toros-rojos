@@ -48,8 +48,8 @@
                             </div>
 
                             <div class="d-flex gap-2">
-                                <button class="btn btn-primary" type="submit">Cambiar contraseña</button>
-                                <a href="{{ route('perfil.edit') }}" class="btn btn-outline-secondary">Volver</a>
+                                <button class="btn btn--primary" type="submit">Cambiar contraseña</button>
+                                <a href="{{ route('perfil.edit') }}" class="btn btn--simple">Volver</a>
                             </div>
                         </form>
                         </div>

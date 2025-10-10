@@ -61,7 +61,7 @@
                                             <input id="new_email" name="new_email" class="form-control" value="{{ old('new_email') }}" required />
                                         </div>
                                         <div class="d-grid gap-2">
-                                            <button class="btn btn-secondary">Cambiar correo y reenviar</button>
+                                            <button class="btn btn--simple">Cambiar correo y reenviar</button>
                                         </div>
                                     </form>
                                 </div>

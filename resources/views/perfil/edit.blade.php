@@ -57,8 +57,8 @@
                                     </div>
 
                                     <div class="d-flex gap-2">
-                                        <button class="btn btn-primary" type="submit">Guardar</button>
-                                        <a href="{{ route('password.change') }}" class="btn btn-outline-secondary">Cambiar contraseña</a>
+                                        <button class="btn btn--primary" type="submit">Guardar</button>
+                                        <a href="{{ route('password.change') }}" class="btn btn--simple">Cambiar contraseña</a>
                                     </div>
                                 </form>
                             </div>

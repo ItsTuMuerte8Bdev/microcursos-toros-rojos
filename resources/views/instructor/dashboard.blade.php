@@ -25,7 +25,7 @@
                                     <div class="small text-muted">{{ $emp->email }}</div>
                                 </div>
                                 <div>
-                                    <a href="{{ route('instructor.employee.progress', ['id' => $emp->id_usuario ?? $emp->id]) }}" class="btn btn-sm btn-outline-primary">Ver progreso</a>
+                                    <a href="{{ route('instructor.employee.progress', ['id' => $emp->id_usuario ?? $emp->id]) }}" class="btn btn-sm btn--video">Ver progreso</a>
                                 </div>
                             </div>
                         </div>
@@ -41,7 +41,7 @@
         <div class="card-body">
             <h5>Herramientas rápidas</h5>
                 <div class="d-flex gap-2">
-                <a href="{{ route('instructor.export_assigned') }}" class="btn btn-outline-primary">Exportar lista</a>
+                <a href="{{ route('instructor.export_assigned') }}" class="btn btn--simple">Exportar lista</a>
                 <button id="markDoneBtn" class="btn btn-outline-secondary">Marcar tareas completadas</button>
             </div>
         </div>

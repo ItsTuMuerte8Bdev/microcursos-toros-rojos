@@ -11,7 +11,7 @@
         <div class="card-body">
             <div class="mb-3">
                 <button id="runCleanupBtn" class="btn btn-danger">Ejecutar limpieza PWA</button>
-                <button id="clearLogsBtn" class="btn btn-secondary ms-2">Limpiar registros</button>
+                <button id="clearLogsBtn" class="btn btn--simple ms-2">Limpiar registros</button>
             </div>
             <div class="alert alert-info" id="infoBox">Presiona "Ejecutar limpieza PWA" para iniciar. Revisa la consola y los registros abajo.</div>
             <div id="cleanupLogs" style="max-height:300px; overflow:auto; background:#f8f9fa; padding:12px; border-radius:6px; border:1px solid #ececec; font-family: monospace; white-space:pre-wrap;"></div>

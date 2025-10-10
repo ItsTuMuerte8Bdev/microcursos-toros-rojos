@@ -17,8 +17,8 @@
             <p class="mt-4 text-md-start"><strong>En pocas palabras:</strong> ofrecemos cursos para democratizar el acceso al conocimiento técnico, eliminando barreras de tiempo y conectividad, y entregando una experiencia de aprendizaje moderna y motivadora.</p>
 
             <div class="mt-4">
-                        <a href="#" data-target-url="{{ url('/microcursos') }}" class="btn btn-primary btn-lg me-2" id="mainCoursesBtn">Ir a Mis Cursos</a>
-                        <a href="{{ url('/descargas/administrar') }}" class="btn btn-secondary btn-lg me-2 d-none" id="offlineDownloadsBtn">Ir a Mis Descargas</a>
+                        <a href="#" data-target-url="{{ url('/microcursos') }}" class="btn btn--primary btn-lg me-2" id="mainCoursesBtn">Ir a Mis Cursos</a>
+                        <a href="{{ url('/descargas/administrar') }}" class="btn btn--simple btn-lg me-2 d-none" id="offlineDownloadsBtn">Ir a Mis Descargas</a>
             </div>
         </div>
         <div class="col-md-6 text-center d-none d-md-block">

@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mb-3">
-        <a href="{{ url()->previous() }}" class="btn btn-link">&larr; Volver</a>
+    <a href="{{ url()->previous() }}" class="btn btn--simple">&larr; Volver</a>
     </div>
 
     <div class="card">
@@ -34,14 +34,14 @@
                             <img src="https://img.youtube.com/vi/{{ $ytId }}/hqdefault.jpg" alt="Miniatura video" style="width:160px;height:90px;object-fit:cover;border-radius:6px;margin-right:12px;" onerror="this.style.display='none'" />
                         @endif
                         <div>
-                            <a href="{{ $leccion->recurso_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">Ver recurso recomendado</a>
+                            <a href="{{ $leccion->recurso_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn--video">Ver recurso recomendado</a>
                             <div class="text-muted small mt-1">Recurso externo: se abrirá en otra pestaña</div>
                         </div>
                     </div>
                 @endif
                 <div class="mb-3">
                     <div id="exampleArea">Cargando ejemplo...</div>
-                    <button id="showSolution" class="btn btn-sm btn-outline-secondary mt-2">Ver solución</button>
+                    <button id="showSolution" class="btn btn-sm btn--option mt-2">Ver solución</button>
                 </div>
 
                 <h5>Actividad</h5>
@@ -60,7 +60,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div id="completionMsg"></div>
                     <div>
-                        <button id="markComplete" class="btn btn-success">Marcar como completada</button>
+                        <button id="markComplete" class="btn btn--status is-downloaded">Marcar como completada</button>
                     </div>
                 </div>
             </div>

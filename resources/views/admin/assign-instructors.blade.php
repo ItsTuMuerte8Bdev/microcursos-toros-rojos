@@ -38,7 +38,7 @@
         </div>
         
         <div class="mt-3">
-            <button class="btn btn-primary">Guardar asignaciones</button>
+            <button class="btn btn--primary">Guardar asignaciones</button>
             <a href="{{ url('/admin/cursos') }}" class="btn btn-secondary ms-2">Volver</a>
         </div>
     </form>

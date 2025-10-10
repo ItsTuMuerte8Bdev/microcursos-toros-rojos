@@ -218,7 +218,8 @@
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 // marker class for CSS truncation and JS targeting
-                btn.className = 'btn btn-sm btn-outline-primary m-1 activity-link-btn';
+                // Use unified classes: btn--video for link-like buttons, keep btn-sm for sizing
+                btn.className = 'btn btn-sm btn--option m-1 activity-link-btn';
                 btn.textContent = text;
                 // store the url in a data attribute instead of href
                 btn.dataset = text;
@@ -227,12 +228,12 @@
                     e.preventDefault();
                     // Visual feedback and controlled navigation only when safe
                     if (o && o.safe) {
-                        btn.classList.remove('btn-outline-primary'); btn.classList.add('btn-success');
+                        btn.classList.remove('btn--option'); btn.classList.add('btn--status', 'is-downloaded');
                         showCenteredModal('success', 'Correcto', 'Correcto — enlace seguro.');
                         // open link after short delay so modal is visible briefly
                         setTimeout(()=>{ try{ window.open(text, '_blank', 'noopener,noreferrer'); }catch(e){} }, 250);
                     } else {
-                        btn.classList.remove('btn-outline-primary'); btn.classList.add('btn-danger');
+                        btn.classList.remove('btn--option'); btn.classList.add('btn--option', 'is-wrong');
                         showCenteredModal('danger', 'Cuidado', 'Cuidado — posible enlace malicioso.');
                     }
                 });
@@ -271,7 +272,8 @@
                 });
 
                 const doneBtn = document.createElement('button');
-                doneBtn.className = 'btn btn-sm btn-outline-primary';
+                // Use option style for small 'Hecho' buttons
+                doneBtn.className = 'btn btn-sm btn--option';
                 doneBtn.style.verticalAlign = 'middle';
                 doneBtn.textContent = 'Hecho';
                 // stop propagation so clicking button doesn't open the info modal
@@ -280,12 +282,12 @@
                     const doneKey = activityDoneKey();
                     if (!doneBtn.dataset.done) {
                         doneBtn.dataset.done = '1';
-                        doneBtn.className = 'btn btn-sm btn-success';
+                        doneBtn.className = 'btn btn-sm btn--status is-downloaded';
                         showBootstrapToast('success', 'Actividad', 'Actividad marcada como hecha.');
                         try{ localStorage.setItem(doneKey, '1'); }catch(e){}
                     } else {
                         delete doneBtn.dataset.done;
-                        doneBtn.className = 'btn btn-sm btn-outline-primary';
+                        doneBtn.className = 'btn btn-sm btn--option';
                         showBootstrapToast('info', 'Actividad', 'Marca de actividad removida.');
                         try{ localStorage.removeItem(doneKey); }catch(e){}
                     }
@@ -295,7 +297,7 @@
                 try{
                     // Check the new per-user key first, then fall back to the legacy key for migration.
                     const prev = localStorage.getItem(activityDoneKey()) || localStorage.getItem('activity_done_'+(window.LECCION_ID || 'global'));
-                    if (prev) { doneBtn.dataset.done = '1'; doneBtn.className = 'btn btn-sm btn-success'; }
+                        if (prev) { doneBtn.dataset.done = '1'; doneBtn.className = 'btn btn-sm btn--status is-downloaded'; }
                 }catch(e){}
 
                 wrapper.appendChild(info);
@@ -353,7 +355,8 @@
                 const choicesWrap = document.createElement('div');
                 q.choices.forEach((ch, ci)=>{
                     const cb = document.createElement('button');
-                    cb.className = 'btn btn-sm btn-outline-secondary m-1';
+                    // quiz choices use option style and compact sizing
+                    cb.className = 'btn btn-sm btn--option m-1 btn--compact';
                     cb.textContent = ch.text || ('Opción ' + (ci+1));
                     cb.addEventListener('click', ()=>{
                         // disable choice buttons for this question
@@ -364,7 +367,7 @@
                         fb.innerHTML = ch.feedback || (ch.correct ? '<span class="text-success">¡Correcto!</span>' : '<span class="text-danger">Respuesta no correcta.</span>');
                         qWrap.appendChild(fb);
                         // visually mark chosen
-                        if (ch.correct) cb.className = 'btn btn-sm btn-success m-1'; else cb.className = 'btn btn-sm btn-danger m-1';
+                        if (ch.correct) cb.className = 'btn btn-sm btn--status is-downloaded m-1'; else cb.className = 'btn btn-sm btn--option is-wrong m-1';
                         // submit single result (puntaje 1 or 0)
                         submitResultado(ch.correct ? 1 : 0);
                     });
@@ -379,7 +382,7 @@
             if (quizQuestionEl) quizQuestionEl.textContent = qdata[0].text || quizQuestionEl.textContent;
             qdata.forEach(o=>{
                 const btn = document.createElement('button');
-                btn.className = 'btn btn-sm btn-outline-secondary m-1';
+                btn.className = 'btn btn-sm btn--option m-1';
                 btn.textContent = o.text;
                 btn.addEventListener('click', ()=>{
                     // feedback area
@@ -392,7 +395,7 @@
         } else {
             // fallback: a simple default question
             const btn = document.createElement('button');
-            btn.className = 'btn btn-sm btn-outline-secondary m-1';
+            btn.className = 'btn btn-sm btn--option m-1';
             btn.textContent = 'Una forma segura de almacenar contraseñas';
             btn.addEventListener('click', ()=>{ quizFeedback.innerHTML = '<span class="text-success">¡Correcto!</span>'; submitResultado(1); });
             quizContainer.appendChild(btn);
@@ -617,8 +620,8 @@
                                 </div>
                                 <div class="d-flex justify-content-end">
                                     <!-- If user is admin allow saving, otherwise show read-only and hide save -->
-                                    <button class="btn btn-primary me-2" id="${modalId}_save">Guardar</button>
-                                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                    <button class="btn btn--primary me-2" id="${modalId}_save">Guardar</button>
+                                    <button class="btn btn--simple" data-bs-dismiss="modal">Cerrar</button>
                                 </div>
                             </div>
                         </div>
@@ -828,9 +831,9 @@
                                         </div>
                                         <div class="d-flex action-btn-row">
                                             <div class="action-btn-group">
-                                                <a href="/cursos/${c.id_curso}/ver" class="btn btn-outline-primary btn-sm">Ver</a>
-                                                <a href="/cursos/${c.id_curso}/continuar" class="btn btn-primary btn-sm">Continuar</a>
-                                                ${ (typeof window.CURRENT_USER !== 'undefined' && window.CURRENT_USER) ? `<button class="btn btn-sm btn-secondary download-course-btn" data-curso-id="${c.id_curso}">Descargar</button>` : '' }
+                                                <a href="/cursos/${c.id_curso}/ver" class="btn btn--video btn-sm">Ver</a>
+                                                <a href="/cursos/${c.id_curso}/continuar" class="btn btn--primary btn-sm">Continuar</a>
+                                                ${ (typeof window.CURRENT_USER !== 'undefined' && window.CURRENT_USER) ? `<button class="btn btn-sm btn--status download-course-btn" data-curso-id="${c.id_curso}">Descargar</button>` : '' }
                                             </div>
                                         </div>
                                     </div>

@@ -70,7 +70,7 @@
                         </div>
 
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Registrarse</button>
+                            <button type="submit" class="btn btn--primary">Registrarse</button>
                         </div>
                     </form>
                 </div>

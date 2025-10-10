@@ -30,8 +30,8 @@
                 </div>
                 <div class="modal-body" id="confirmActionModalBody">¿Estás seguro?</div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="confirmActionModalCancel">Cancelar</button>
-                    <button type="button" class="btn btn-danger" id="confirmActionModalConfirm">Confirmar</button>
+                    <button type="button" class="btn btn--simple" data-bs-dismiss="modal" id="confirmActionModalCancel">Cancelar</button>
+                    <button type="button" class="btn btn--option" id="confirmActionModalConfirm">Confirmar</button>
                 </div>
             </div>
         </div>
@@ -46,7 +46,7 @@
                 </div>
                 <div class="modal-body" id="confirmResultModalBody">Operación completada.</div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="confirmResultModalOk">Aceptar</button>
+                    <button type="button" class="btn btn--primary" id="confirmResultModalOk">Aceptar</button>
                 </div>
             </div>
         </div>
@@ -82,8 +82,8 @@
                     <div class="small text-muted">ID: ${c.id}</div>
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-danger btn-sm delete-download-btn" data-id="${c.id}">Eliminar descarga</button>
-                    <button class="btn btn-outline-primary btn-sm view-download-btn" data-id="${c.id}">Ver</button>
+                    <button class="btn btn--option btn-sm delete-download-btn" data-id="${c.id}">Eliminar descarga</button>
+                    <button class="btn btn--video btn-sm view-download-btn" data-id="${c.id}">Ver</button>
                 </div>
             `;
             wrap.appendChild(el);

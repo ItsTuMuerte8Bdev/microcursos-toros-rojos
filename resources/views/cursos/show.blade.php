@@ -38,9 +38,9 @@
             <p class="lead text-light-emphasis" style="max-width:800px; line-height:1.4; font-size:1.05rem; color:var(--color-white);">{{ $curso->descripcion }}</p>
         </div>
         <div>
-            <a href="{{ url('/cursos') }}" class="btn btn-outline-secondary">Volver</a>
+            <a href="{{ url('/cursos') }}" class="btn btn--simple">Volver</a>
             @if(auth()->check())
-                <button id="downloadCourseBtn" class="btn btn-primary ms-2">Descargar curso</button>
+                <button id="downloadCourseBtn" class="btn btn--primary ms-2">Descargar curso</button>
             @endif
         </div>
     </div>
@@ -72,7 +72,7 @@
                                         <div class="small" style="color:#cfddeb">{{ Str::limit(strip_tags($leccion->contenido), 120) }}</div>
                                     </div>
                                     <div>
-                                        <a href="{{ route('lecciones.view', $leccion->id_leccion) }}" class="btn btn-sm btn-primary">Abrir</a>
+                                        <a href="{{ route('lecciones.view', $leccion->id_leccion) }}" class="btn btn-sm btn--primary">Abrir</a>
                                     </div>
                                 </li>
                             @endforeach
@@ -118,11 +118,11 @@
 
             // Helper to mark button as downloaded
             function markDownloaded(){
-                try{ btn.classList.remove('btn-primary'); btn.classList.add('btn-success'); btn.innerText = 'Descargado'; btn.disabled = true; try{ btn.classList.add('download-animated'); setTimeout(()=>btn.classList.remove('download-animated'),900); }catch(e){} }catch(e){}
+                try{ btn.classList.remove('btn--primary'); btn.classList.add('btn--status','is-downloaded'); btn.innerText = 'Descargado'; btn.disabled = true; try{ btn.classList.add('download-animated'); setTimeout(()=>btn.classList.remove('download-animated'),900); }catch(e){} }catch(e){}
             }
 
             function markNotDownloaded(){
-                try{ btn.classList.remove('btn-success'); btn.classList.add('btn-primary'); btn.innerText = 'Descargar curso'; btn.disabled = false; }catch(e){}
+                try{ btn.classList.remove('btn--status','is-downloaded'); btn.classList.add('btn--primary'); btn.innerText = 'Descargar curso'; btn.disabled = false; }catch(e){}
             }
 
             async function checkDownloadedOnLoad(){
