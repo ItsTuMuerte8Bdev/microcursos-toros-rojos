@@ -201,7 +201,7 @@
     if (document.getElementById('activityOptions')){
         // Allow server to inject custom activity options via window.LESSON_ACTIVITY_OPTIONS (array of {text, safe})
         const options = (Array.isArray(window.LESSON_ACTIVITY_OPTIONS) && window.LESSON_ACTIVITY_OPTIONS.length) ? window.LESSON_ACTIVITY_OPTIONS : [
-            {text: 'https://tu-banco.com/login', safe: true},
+            {text: 'https://www.bbva.mx', safe: true},
             {text: 'http://secure-login.verify-account.com', safe: false},
             {text: 'https://accounts.google.com', safe: true},
             {text: 'http://bit.ly/1234', safe: false}
@@ -221,7 +221,7 @@
                 btn.className = 'btn btn-sm btn-outline-primary m-1 activity-link-btn';
                 btn.textContent = text;
                 // store the url in a data attribute instead of href
-                btn.dataset.url = text;
+                btn.dataset = text;
                 btn.addEventListener('click', (e)=>{
                     // prevent default behavior (though buttons don't navigate by default)
                     e.preventDefault();
@@ -393,7 +393,7 @@
             // fallback: a simple default question
             const btn = document.createElement('button');
             btn.className = 'btn btn-sm btn-outline-secondary m-1';
-            btn.textContent = 'Usar un gestor de contraseñas y 2FA';
+            btn.textContent = 'Una forma segura de almacenar contraseñas';
             btn.addEventListener('click', ()=>{ quizFeedback.innerHTML = '<span class="text-success">¡Correcto!</span>'; submitResultado(1); });
             quizContainer.appendChild(btn);
         }
