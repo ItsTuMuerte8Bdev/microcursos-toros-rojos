@@ -49,11 +49,14 @@
         <div class="col-md-8">
             @foreach($curso->modulos as $modulo)
                 <div class="card mb-3 module-card" data-modulo-id="{{ $modulo->id_modulo }}">
-                    <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center"><h5 class="text-center justify-content-center w-100 m-0 py-2" style="border-top-left-radius: .25rem; border-top-right-radius: .25rem;">
+                    @php $mp = $moduleProgress[$modulo->id_modulo] ?? ['percent'=>0,'completed'=>0,'total'=>0]; @endphp
+                    <small class="text-muted">{{ $mp['percent'] }}% completado</small>
+                    </h5></div>
+                        
+                    <div class="card-body align-items-stretch d-flex flex-column">
                         <h5 class="d-flex justify-content-between align-items-center">
                             <span>{{ $modulo->titulo }}</span>
-                            @php $mp = $moduleProgress[$modulo->id_modulo] ?? ['percent'=>0,'completed'=>0,'total'=>0]; @endphp
-                            <small class="text-muted">{{ $mp['percent'] }}% completado</small>
                         </h5>
                         <p class="mb-2" style="color:#dfeefb; font-size:0.98rem;">{{ $modulo->descripcion }}</p>
                         <div class="mb-2">
