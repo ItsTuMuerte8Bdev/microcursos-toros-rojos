@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mb-3">
-    <a href="{{ url()->previous() }}" class="btn btn--simple">&larr; Volver</a>
+    <a href="{{ route('cursos.show', ['id' => $leccion->modulo->id_curso]) }}" class="btn btn--simple">&larr; Volver</a>
     </div>
 
     <div class="card">
@@ -64,6 +64,19 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between mt-3">
+        <div>
+            @if(isset($prev) && $prev)
+                <a href="{{ route('lecciones.view', ['id' => $prev->id_leccion]) }}" class="btn btn--simple">&larr; Anterior: {{ Str::limit($prev->titulo, 40) }}</a>
+            @endif
+        </div>
+        <div>
+            @if(isset($next) && $next)
+                <a href="{{ route('lecciones.view', ['id' => $next->id_leccion]) }}" class="btn btn--simple">Siguiente: {{ Str::limit($next->titulo, 40) }} &rarr;</a>
+            @endif
         </div>
     </div>
 

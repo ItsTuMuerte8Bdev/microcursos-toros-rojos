@@ -112,7 +112,7 @@
                                     </div>
                                         <div class="d-flex action-btn-row">
                                             <div class="action-btn-group">
-                                                <a href="{{ url('/cursos/'.$curso->id_curso.'/ver') }}" class="btn btn--video btn-sm">Ver</a>
+                                                <a href="{{ url('/cursos/'.$curso->id_curso.'/ver') }}" class="btn btn--simple btn-sm">Ver</a>
                                                 <a href="{{ url('/cursos/'.$curso->id_curso.'/continuar') }}" class="btn btn--primary btn-sm">Continuar</a>
                                                 @if(auth()->check())
                                                     <button class="btn btn-sm btn--status download-course-btn" data-curso-id="{{ $curso->id_curso }}">Descargar</button>
