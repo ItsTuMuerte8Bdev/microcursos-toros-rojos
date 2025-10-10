@@ -73,7 +73,7 @@
                         }
                         $imgPath = asset('images/' . $imgName);
                     @endphp
-                    <div class="col-md-4 course-card" data-curso-id="{{ $curso->id_curso }}" data-category-id="{{ $curso->id_categoria }}" data-category-name="{{ optional($curso->categoria)->nombre }}">
+                    <div class="col-md-6 col-lg-4 course-card" data-curso-id="{{ $curso->id_curso }}" data-category-id="{{ $curso->id_categoria }}" data-category-name="{{ optional($curso->categoria)->nombre }}">
                         <div class="card h-100">
                             <img src="{{ $imgPath }}" class="card-img-top" alt="{{ $curso->titulo }}">
                             <div class="card-body d-flex flex-column">

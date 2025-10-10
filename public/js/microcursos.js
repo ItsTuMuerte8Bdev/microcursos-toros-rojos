@@ -404,11 +404,34 @@
 
     // Mark complete -> POST progress
     if (document.getElementById('markComplete')){
+        // Apply initial visual state from data attribute (server-side rendered)
+        try{
+            const markBtnInit = document.getElementById('markComplete');
+            if (markBtnInit){
+                if (markBtnInit.dataset && markBtnInit.dataset.completed === '1'){
+                    // already completed: ensure class and label
+                    markBtnInit.classList.add('is-downloaded');
+                    markBtnInit.textContent = markBtnInit.textContent.trim() || 'Completado';
+                    markBtnInit.textContent = 'Completado';
+                    markBtnInit.disabled = false; // allow viewing but not double-sending; leave enabled to allow potential future actions
+                }
+            }
+        }catch(e){}
+
         document.getElementById('markComplete').addEventListener('click', function(){
             const id_leccion = window.LECCION_ID || null;
             if (!id_leccion) { showCenteredModal('warning', 'Error', 'ID de lección no encontrado'); return; }
             const userId = window.CURRENT_USER || null;
             const csrf = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : null;
+            // If already marked (server-side), avoid duplicate POSTs but still give feedback
+            const self = this;
+            try{
+                if (self.dataset && self.dataset.completed === '1'){
+                    document.getElementById('completionMsg').innerHTML = '<span class="text-success">Lección ya completada.</span>';
+                    return;
+                }
+            }catch(e){}
+
             fetch('/api/progreso', {
                 method: 'POST',
                 credentials: 'same-origin',
@@ -426,6 +449,16 @@
                 }
                 if (r.ok) {
                     document.getElementById('completionMsg').innerHTML = '<span class="text-success">¡Lección completada! 🎉</span>';
+                    // Update button visual state to match other 'done' controls
+                    try{
+                        const btn = document.getElementById('markComplete');
+                        if (btn){
+                            btn.classList.remove('btn--option');
+                            btn.classList.add('btn--status','is-downloaded');
+                            btn.textContent = 'Completado';
+                            btn.dataset.completed = '1';
+                        }
+                    }catch(e){}
                     // refresh course progress if present
                     if (window.CURSO_ID) fetchCourseProgress(window.CURSO_ID, userId);
                 } else {

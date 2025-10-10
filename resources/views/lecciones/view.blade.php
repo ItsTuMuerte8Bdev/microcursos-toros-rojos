@@ -7,6 +7,22 @@
     <a href="{{ route('cursos.show', ['id' => $leccion->modulo->id_curso]) }}" class="btn btn--simple">&larr; Volver</a>
     </div>
 
+    <?php
+        // Determine si la lección ya está completada por el usuario autenticado
+        $completado = false;
+        try {
+            if (auth()->check()) {
+                $completado = \App\Models\Progreso::where('id_usuario', auth()->id())
+                    ->where('id_leccion', $leccion->id_leccion)
+                    ->where('completado', true)
+                    ->exists();
+            }
+        } catch (\Exception $e) {
+            // en caso de error (DB no disponible en contexto) dejar false
+            $completado = false;
+        }
+    ?>
+
     {{-- Onboarding lateral: panel colapsable al centro-izquierda --}} 
     <div id="onboardingPanel" aria-hidden="false" style="position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:1050;display:flex;align-items:flex-start;">
         <div id="onboardingToggle" role="button" aria-label="Mostrar u ocultar índice" style="background:transparent;border-radius:0 6px 6px 0;padding:10px 8px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
@@ -98,7 +114,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div id="completionMsg"></div>
                     <div>
-                        <button id="markComplete" class="btn btn--status is-downloaded">Marcar como completada</button>
+                        <button id="markComplete" class="btn btn--status {{ $completado ? 'is-downloaded' : '' }}" data-completed="{{ $completado ? '1' : '0' }}">{{ $completado ? 'Completado' : 'Marcar como completada' }}</button>
                     </div>
                 </div>
             </div>
