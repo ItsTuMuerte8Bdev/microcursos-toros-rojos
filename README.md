@@ -24,7 +24,7 @@ Estas cuentas son de demostración y están destinadas únicamente a pruebas. No
   - Contraseña: instructor123
 
 - Empleado demo:
-  - Email: ana@example.com
+  - Email: ana@demo.com
   - Contraseña: empleado123
 
 - Administrador demo:
