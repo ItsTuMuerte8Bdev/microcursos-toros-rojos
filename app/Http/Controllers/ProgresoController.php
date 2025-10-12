@@ -28,6 +28,16 @@ class ProgresoController extends Controller
 
         // Prefer authenticated user when available
         $userId = Auth::id() ?: ($data['id_usuario'] ?? null);
+        // Block demo users from persisting progreso
+        $demoIds = [1,2];
+        $demoEmails = ['admin@demo.com','juan@demo.com'];
+        $isDemo = false;
+        try{ $user = Auth::user(); if ($user){ $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true; } }catch(\Throwable $e){}
+
+        if ($isDemo){
+            // Return a friendly JSON indicating the operation was simulated but not persisted.
+            return response()->json(['demo' => true, 'message' => 'Cuenta de demostración: el progreso se mantiene localmente pero no se guarda en la base de datos.'], 200);
+        }
         if (!$userId) {
             return response()->json(['error' => 'Usuario no autenticado'], 401);
         }

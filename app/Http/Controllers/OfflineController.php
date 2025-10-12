@@ -15,6 +15,16 @@ class OfflineController extends Controller
             return response()->json(['error' => 'Usuario no autenticado'], 401);
         }
 
+        // Block demo users from sync persisting into DB
+        $demoIds = [1,2];
+        $demoEmails = ['admin@demo.com','juan@demo.com'];
+        $isDemo = false;
+        try{ $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true; }catch(\Throwable $e){}
+
+        if ($isDemo){
+            return response()->json(['demo' => true, 'message' => 'Cuenta de demostración: el progreso no se guardó en la base de datos.'], 200);
+        }
+
         $data = $request->validate([
             'progresses' => 'required|array'
         ]);

@@ -27,6 +27,15 @@ class ResultadoController extends Controller
 
         // Use authenticated user id to avoid spoofing
         $validated['id_usuario'] = auth()->id();
+        // Block demo users from persisting resultados
+        $demoIds = [1,2];
+        $demoEmails = ['admin@demo.com','juan@demo.com'];
+        $isDemo = false;
+        try{ $user = auth()->user(); if ($user){ $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true; } }catch(\Throwable $e){}
+
+        if ($isDemo){
+            return response()->json(['demo' => true, 'message' => 'Cuenta de demostración: el resultado no se guardó en la base de datos.'], 200);
+        }
 
         // Convert incoming ISO datetime (e.g. 2025-10-05T02:58:19.304Z) to MySQL datetime
         if (!empty($validated['fecha'])) {

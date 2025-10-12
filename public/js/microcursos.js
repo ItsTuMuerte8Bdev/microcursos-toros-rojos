@@ -329,9 +329,23 @@
                 headers: { 'Content-Type':'application/json', 'X-Requested-With':'XMLHttpRequest', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
                 body: JSON.stringify(payload)
             }).then(r=>{
-                if (r.ok) showBootstrapToast('success', 'Evaluación', 'Resultado guardado.');
-                else if (r.status === 401) try{ var loginModal = new bootstrap.Modal(document.getElementById('loginRequiredModal')); loginModal.show(); }catch(e){ window.location.href = '/login'; }
-                else showBootstrapToast('warning', 'Evaluación', 'No fue posible guardar el resultado.');
+                // Prefer to parse JSON to detect demo responses
+                r.json().then(j=>{
+                    if (j && j.demo){
+                        showBootstrapToast('warning', 'Cuenta demo', 'Resultado no guardado en BD (modo demo). Se almacenó localmente.');
+                        try{ const pending = JSON.parse(localStorage.getItem('pendingResultados')||'[]'); pending.push(payload); localStorage.setItem('pendingResultados', JSON.stringify(pending)); }catch(e){}
+                    } else if (r.ok){
+                        showBootstrapToast('success', 'Evaluación', 'Resultado guardado.');
+                    } else if (r.status === 401){
+                        try{ var loginModal = new bootstrap.Modal(document.getElementById('loginRequiredModal')); loginModal.show(); }catch(e){ window.location.href = '/login'; }
+                    } else {
+                        showBootstrapToast('warning', 'Evaluación', 'No fue posible guardar el resultado.');
+                    }
+                }).catch(()=>{
+                    if (r.status === 401) try{ var loginModal = new bootstrap.Modal(document.getElementById('loginRequiredModal')); loginModal.show(); }catch(e){ window.location.href = '/login'; }
+                    else if (r.ok) showBootstrapToast('success', 'Evaluación', 'Resultado guardado.');
+                    else showBootstrapToast('warning', 'Evaluación', 'No fue posible guardar el resultado.');
+                });
             }).catch(err=>{
                 const pending = JSON.parse(localStorage.getItem('pendingResultados')||'[]');
                 pending.push(payload);
@@ -448,7 +462,17 @@
                     return;
                 }
                 if (r.ok) {
-                    document.getElementById('completionMsg').innerHTML = '<span class="text-success">¡Lección completada! 🎉</span>';
+                    // Try parse JSON to detect demo-mode responses
+                    r.json().then(j=>{
+                        if (j && j.demo){
+                            document.getElementById('completionMsg').innerHTML = '<span class="text-warning">Progreso marcado localmente (demo). No se guardó en la base de datos.</span>';
+                            showBootstrapToast('warning', 'Cuenta demo', 'Esta cuenta es de demostración: los cambios no se guardaron en la base de datos.');
+                            // store locally so UX reflects progress for this session
+                            try{ const pending = JSON.parse(localStorage.getItem('pendingProgreso')||'[]'); pending.push({ id_usuario:userId, id_leccion:id_leccion, completado:true, ts:Date.now() }); localStorage.setItem('pendingProgreso', JSON.stringify(pending)); }catch(e){}
+                        } else {
+                            document.getElementById('completionMsg').innerHTML = '<span class="text-success">¡Lección completada! 🎉</span>';
+                        }
+                    }).catch(()=>{ document.getElementById('completionMsg').innerHTML = '<span class="text-success">¡Lección completada! 🎉</span>'; });
                     // Update button visual state to match other 'done' controls
                     try{
                         const btn = document.getElementById('markComplete');

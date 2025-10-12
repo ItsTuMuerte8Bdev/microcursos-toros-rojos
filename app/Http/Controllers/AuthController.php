@@ -374,6 +374,11 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
         $user = auth()->user();
+        // Block DB writes for demo users (IDs 1 and 2 or demo emails)
+        $demoIds = [1,2];
+        $demoEmails = ['admin@demo.com','juan@demo.com'];
+        $isDemo = false;
+        try { $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true; } catch(\Throwable $e) { $isDemo = false; }
         $request->validate([
             'nombre' => 'required|string|max:100',
             'apellido' => 'required|string|max:100',
@@ -383,6 +388,10 @@ class AuthController extends Controller
         $user->nombre = $request->input('nombre');
         $user->apellido = $request->input('apellido');
         $user->sexo = $request->input('sexo') ?? $user->sexo;
+        if ($isDemo) {
+            // Don't persist demo changes
+            return redirect()->route('perfil.edit')->with('status', 'Cuenta de demostración: los cambios no se guardaron. Crea una cuenta propia para guardar cambios.');
+        }
         $user->save();
 
         return redirect()->route('perfil.edit')->with('status', 'Información actualizada correctamente');
@@ -402,7 +411,12 @@ class AuthController extends Controller
             'password' => 'required|confirmed|min:6',
         ]);
 
-        $user = auth()->user();
+    $user = auth()->user();
+    // Block demo users from changing password in DB
+    $demoIds = [1,2];
+    $demoEmails = ['admin@demo.com','juan@demo.com'];
+    $isDemo = false;
+    try { $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true; } catch(\Throwable $e) { $isDemo = false; }
 
         // Verify current password
         if (!\Illuminate\Support\Facades\Hash::check($request->input('current_password'), $user->password)) {
@@ -410,6 +424,11 @@ class AuthController extends Controller
         }
 
         $user->password = $request->input('password'); // mutator will hash
+        if ($isDemo) {
+            // don't persist password change
+            return redirect()->route('perfil.edit')->with('status', 'Cuenta de demostración: la contraseña no fue modificada. Crea una cuenta propia para cambiar tu contraseña.');
+        }
+
         $user->save();
 
         // Regenerate session to avoid fixation
