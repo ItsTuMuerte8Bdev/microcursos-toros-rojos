@@ -301,8 +301,8 @@
     </script>
     @if(auth()->check())
         @php
-            $demoIds = [1,2];
-            $demoEmails = ['admin@demo.com','juan@demo.com'];
+            $demoIds = config('demo.ids', []);
+            $demoEmails = config('demo.emails', []);
             $isDemo = in_array(auth()->id(), $demoIds) || in_array(strtolower(auth()->user()->correo ?? ''), array_map('strtolower',$demoEmails));
         @endphp
         @if($isDemo)

@@ -10,8 +10,8 @@
                 <div class="mb-3">
                     <strong>{{ $employee->nombre ?? $employee->name }}</strong>
                     @php
-                        $demoIds = [1,2];
-                        $demoEmails = ['admin@demo.com','juan@demo.com'];
+                        $demoIds = config('demo.ids', []);
+                        $demoEmails = config('demo.emails', []);
                         $mask = false;
                         if(auth()->check()){
                             try{ $au = auth()->user(); $aid = $au->getAuthIdentifier(); if ($aid && in_array(intval($aid), $demoIds, true)) $mask = true; $aem = $au->email ?? ($au->correo ?? null); if ($aem && in_array(strtolower($aem), array_map('strtolower',$demoEmails), true)) $mask = true; }catch(\Throwable $e){}

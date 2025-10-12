@@ -97,10 +97,13 @@ Route::middleware('auth')->get('/admin/cleanup-pwa', function(){
         abort(403);
     }
     // Prevent demo admins from accessing this tool
-    $demoIds = [1,2];
-    $demoEmails = ['admin@demo.com','juan@demo.com'];
     $isDemo = false;
-    try{ $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true; }catch(\Throwable $e){}
+    try{
+        $demoIds = config('demo.ids', []);
+        $demoEmails = config('demo.emails', []);
+        $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true;
+        $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true;
+    }catch(\Throwable $e){}
     if ($isDemo) {
         return redirect('/admin/cursos')->with('status','Cuenta de demostración: no tiene permiso para usar esta herramienta.');
     }
@@ -113,10 +116,13 @@ Route::middleware('auth')->match(['get','post'],'/admin/assign-instructors', fun
     if (!$user || ($user->rol ?? null) !== 'admin') abort(403);
 
     // Prevent demo-admins from performing mutating actions
-    $demoIds = [1,2];
-    $demoEmails = ['admin@demo.com','juan@demo.com'];
     $isDemoAdmin = false;
-    try{ $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemoAdmin = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemoAdmin = true; }catch(\Throwable $e){}
+    try{
+        $demoIds = config('demo.ids', []);
+        $demoEmails = config('demo.emails', []);
+        $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemoAdmin = true;
+        $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemoAdmin = true;
+    }catch(\Throwable $e){}
 
     if ($request->isMethod('post')){
         \Log::info('assign-instructors POST payload', $request->all());
@@ -211,10 +217,13 @@ Route::middleware('auth')->get('/instructor/export-assigned', function(){
     $user = auth()->user();
     if (!$user || ($user->rol ?? null) !== 'instructor') abort(403);
     // detect demo instructors to mask sensitive fields
-    $demoIds = [1,2];
-    $demoEmails = ['admin@demo.com','juan@demo.com'];
     $isDemo = false;
-    try{ $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true; }catch(\Throwable $e){}
+    try{
+        $demoIds = config('demo.ids', []);
+        $demoEmails = config('demo.emails', []);
+        $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true;
+        $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true;
+    }catch(\Throwable $e){}
 
     $assigned = InstructorEmployeeAssignment::where('instructor_id', $user->id)->pluck('employee_id')->toArray();
     $rows = [];

@@ -10,8 +10,7 @@ class BlockDemoWrites
      * Demo user identifiers (can be IDs or emails). Adjust as needed.
      * By default we block users with id 1 and 2 (seeded demo accounts).
      */
-    protected array $demoIds = [1,2];
-    protected array $demoEmails = ['admin@demo.com','juan@demo.com'];
+    // lists are read from config/demo.php to allow a single authoritative source
 
     public function handle(Request $request, Closure $next)
     {
@@ -20,14 +19,15 @@ class BlockDemoWrites
 
         $isDemo = false;
         try{
+            $demoIds = config('demo.ids', []);
+            $demoEmails = config('demo.emails', []);
             // check by numeric id
             $uid = $user->getAuthIdentifier();
-            if ($uid && in_array(intval($uid), $this->demoIds, true)) $isDemo = true;
+            if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true;
             // fallback: check correo/email
             $email = $user->email ?? ($user->correo ?? null);
-            if ($email && in_array(strtolower($email), array_map('strtolower', $this->demoEmails), true)) $isDemo = true;
+            if ($email && in_array(strtolower($email), array_map('strtolower', $demoEmails), true)) $isDemo = true;
         }catch(\Throwable $e){
-            // if any issue reading user, don't block by default
             $isDemo = false;
         }
 

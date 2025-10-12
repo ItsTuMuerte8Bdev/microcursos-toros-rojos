@@ -11,7 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Append BlockDemoWrites middleware so demo accounts cannot perform mutating requests.
+        // Middleware itself checks config('demo') and skips when unauthenticated.
+        $middleware->append(\App\Http\Middleware\BlockDemoWrites::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

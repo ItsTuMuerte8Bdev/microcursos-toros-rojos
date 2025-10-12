@@ -11,8 +11,8 @@
         <div class="card-body">
             <div class="mb-3">
                 @php
-                    $demoIds = [1,2];
-                    $demoEmails = ['admin@demo.com','juan@demo.com'];
+                    $demoIds = config('demo.ids', []);
+                    $demoEmails = config('demo.emails', []);
                     $isDemo = false;
                     if(auth()->check()){
                         try{ $au = auth()->user(); $aid = $au->getAuthIdentifier(); if ($aid && in_array(intval($aid), $demoIds, true)) $isDemo = true; $aem = $au->email ?? ($au->correo ?? null); if ($aem && in_array(strtolower($aem), array_map('strtolower',$demoEmails), true)) $isDemo = true; }catch(\Throwable $e){}

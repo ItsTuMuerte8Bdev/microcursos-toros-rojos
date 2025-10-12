@@ -374,11 +374,16 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
         $user = auth()->user();
-        // Block DB writes for demo users (IDs 1 and 2 or demo emails)
-        $demoIds = [1,2];
-        $demoEmails = ['admin@demo.com','juan@demo.com'];
+        // Block DB writes for demo users (configured demo IDs/emails)
         $isDemo = false;
-        try { $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true; } catch(\Throwable $e) { $isDemo = false; }
+        try {
+            $demoIds = config('demo.ids', []);
+            $demoEmails = config('demo.emails', []);
+            $uid = $user->getAuthIdentifier();
+            if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true;
+            $email = $user->email ?? ($user->correo ?? null);
+            if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true;
+        } catch(\Throwable $e) { $isDemo = false; }
         $request->validate([
             'nombre' => 'required|string|max:100',
             'apellido' => 'required|string|max:100',
@@ -412,11 +417,16 @@ class AuthController extends Controller
         ]);
 
     $user = auth()->user();
-    // Block demo users from changing password in DB
-    $demoIds = [1,2];
-    $demoEmails = ['admin@demo.com','juan@demo.com'];
+    // Block demo users from changing password in DB (configured list)
     $isDemo = false;
-    try { $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true; } catch(\Throwable $e) { $isDemo = false; }
+    try {
+        $demoIds = config('demo.ids', []);
+        $demoEmails = config('demo.emails', []);
+        $uid = $user->getAuthIdentifier();
+        if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true;
+        $email = $user->email ?? ($user->correo ?? null);
+        if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true;
+    } catch(\Throwable $e) { $isDemo = false; }
 
         // Verify current password
         if (!\Illuminate\Support\Facades\Hash::check($request->input('current_password'), $user->password)) {
@@ -450,11 +460,16 @@ class AuthController extends Controller
             return response()->json(['error' => 'no autorizado'], 403);
         }
 
-        // Prevent demo admin from changing roles
-        $demoIds = [1,2];
-        $demoEmails = ['admin@demo.com','juan@demo.com'];
+        // Prevent demo admin from changing roles (configured list)
         $isDemoAdmin = false;
-        try{ $aid = $auth->getAuthIdentifier(); if ($aid && in_array(intval($aid), $demoIds, true)) $isDemoAdmin = true; $aemail = $auth->email ?? ($auth->correo ?? null); if ($aemail && in_array(strtolower($aemail), array_map('strtolower',$demoEmails), true)) $isDemoAdmin = true; }catch(\Throwable $e){}
+        try{
+            $demoIds = config('demo.ids', []);
+            $demoEmails = config('demo.emails', []);
+            $aid = $auth->getAuthIdentifier();
+            if ($aid && in_array(intval($aid), $demoIds, true)) $isDemoAdmin = true;
+            $aemail = $auth->email ?? ($auth->correo ?? null);
+            if ($aemail && in_array(strtolower($aemail), array_map('strtolower',$demoEmails), true)) $isDemoAdmin = true;
+        }catch(\Throwable $e){}
         if ($isDemoAdmin){
             return response()->json(['demo' => true, 'message' => 'Cuenta de demostración: no está permitido modificar roles desde este perfil.'], 200);
         }

@@ -28,8 +28,8 @@
                 <label class="form-label">Seleccionar empleados</label>
                 <div id="employeesList" class="border p-2" style="max-height:300px; overflow:auto;">
                     @php
-                        $demoIds = [1,2];
-                        $demoEmails = ['admin@demo.com','juan@demo.com'];
+                        $demoIds = config('demo.ids', []);
+                        $demoEmails = config('demo.emails', []);
                         $currentIsDemo = false;
                         if(auth()->check()){
                             try{ $cu = auth()->user(); $cuid = $cu->getAuthIdentifier(); if ($cuid && in_array(intval($cuid), $demoIds, true)) $currentIsDemo = true; $cem = $cu->email ?? ($cu->correo ?? null); if ($cem && in_array(strtolower($cem), array_map('strtolower',$demoEmails), true)) $currentIsDemo = true; }catch(\Throwable $e){}
