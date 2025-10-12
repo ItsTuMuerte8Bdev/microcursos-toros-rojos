@@ -122,13 +122,21 @@
                         headers: { 'Content-Type':'application/json', 'X-CSRF-TOKEN': csrf, 'Accept':'application/json' },
                         body: JSON.stringify({ id_usuario: parseInt(id), rol: newRole })
                     }).then(r=>r.json()).then(json=>{
+                        if(json && json.demo){
+                            // demo admin attempted to change role: revert select and notify
+                            const prev = tr.querySelector('.current-role').textContent.trim();
+                            try{ sel.value = prev; }catch(e){}
+                            if (window.showBootstrapToast) window.showBootstrapToast('warning','Cuenta demo', json.message || 'Acción no permitida en cuenta de demostración');
+                            return;
+                        }
                         if(json.ok){
                             tr.querySelector('.current-role').textContent = json.rol;
                             if (window.showBootstrapToast) window.showBootstrapToast('success','Rol actualizado', 'Se actualizó el rol del usuario.');
                         } else if(json.error){
+                            try{ sel.value = tr.querySelector('.current-role').textContent.trim(); }catch(e){}
                             if (window.showBootstrapToast) window.showBootstrapToast('danger','Error', json.error || 'Error al cambiar rol');
                         }
-                    }).catch(e=>{ if (window.showBootstrapToast) window.showBootstrapToast('danger','Error','Error al cambiar rol'); });
+                    }).catch(e=>{ try{ sel.value = tr.querySelector('.current-role').textContent.trim(); }catch(err){} if (window.showBootstrapToast) window.showBootstrapToast('danger','Error','Error al cambiar rol'); });
                 });
             });
         })();

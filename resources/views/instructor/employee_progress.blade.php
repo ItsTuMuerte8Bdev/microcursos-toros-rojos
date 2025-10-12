@@ -9,7 +9,15 @@
             <div class="card-body">
                 <div class="mb-3">
                     <strong>{{ $employee->nombre ?? $employee->name }}</strong>
-                    <div class="small text-muted">{{ $employee->correo ?? $employee->email }}</div>
+                    @php
+                        $demoIds = [1,2];
+                        $demoEmails = ['admin@demo.com','juan@demo.com'];
+                        $mask = false;
+                        if(auth()->check()){
+                            try{ $au = auth()->user(); $aid = $au->getAuthIdentifier(); if ($aid && in_array(intval($aid), $demoIds, true)) $mask = true; $aem = $au->email ?? ($au->correo ?? null); if ($aem && in_array(strtolower($aem), array_map('strtolower',$demoEmails), true)) $mask = true; }catch(\Throwable $e){}
+                        }
+                    @endphp
+                    <div class="small text-muted">@if($mask) correo oculto @else {{ $employee->correo ?? $employee->email }} @endif</div>
                 </div>
 
                 <p class="small text-muted">Aquí puedes ver el porcentaje de avance por curso (como en administración).</p>

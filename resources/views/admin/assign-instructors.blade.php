@@ -27,10 +27,18 @@
             <div class="col-md-8">
                 <label class="form-label">Seleccionar empleados</label>
                 <div id="employeesList" class="border p-2" style="max-height:300px; overflow:auto;">
+                    @php
+                        $demoIds = [1,2];
+                        $demoEmails = ['admin@demo.com','juan@demo.com'];
+                        $currentIsDemo = false;
+                        if(auth()->check()){
+                            try{ $cu = auth()->user(); $cuid = $cu->getAuthIdentifier(); if ($cuid && in_array(intval($cuid), $demoIds, true)) $currentIsDemo = true; $cem = $cu->email ?? ($cu->correo ?? null); if ($cem && in_array(strtolower($cem), array_map('strtolower',$demoEmails), true)) $currentIsDemo = true; }catch(\Throwable $e){}
+                        }
+                    @endphp
                     @foreach($employees as $emp)
                         <div class="form-check">
                             <input class="form-check-input emp-checkbox" type="checkbox" value="{{ $emp->getKey() }}" id="emp{{ $emp->getKey() }}" name="employee_ids[]">
-                            <label class="form-check-label" for="emp{{ $emp->getKey() }}">{{ $emp->name }} ({{ $emp->email }})</label>
+                            <label class="form-check-label" for="emp{{ $emp->getKey() }}">{{ $emp->name }} @if(!$currentIsDemo) ({{ $emp->email }}) @else (<em>correo oculto</em>) @endif</label>
                         </div>
                     @endforeach
                 </div>
@@ -84,7 +92,7 @@
                                     @foreach($assigned as $aid)
                                         @php $emp = $empMap[$aid] ?? null; @endphp
                                         @if($emp)
-                                            <span class="badge bg-primary me-1 mb-1">{{ $emp->name }} <small class="text-white-50">({{ $emp->email }})</small></span>
+                                            <span class="badge bg-primary me-1 mb-1">{{ $emp->name }} <small class="text-white-50">(@if(!$currentIsDemo) {{ $emp->email }} @else correo oculto @endif)</small></span>
                                         @else
                                             <span class="badge bg-secondary me-1 mb-1">ID: {{ $aid }}</span>
                                         @endif

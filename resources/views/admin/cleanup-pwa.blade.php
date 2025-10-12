@@ -10,8 +10,20 @@
     <div class="card mb-3">
         <div class="card-body">
             <div class="mb-3">
-                <button id="runCleanupBtn" class="btn btn-danger">Ejecutar limpieza PWA</button>
-                <button id="clearLogsBtn" class="btn btn--simple ms-2">Limpiar registros</button>
+                @php
+                    $demoIds = [1,2];
+                    $demoEmails = ['admin@demo.com','juan@demo.com'];
+                    $isDemo = false;
+                    if(auth()->check()){
+                        try{ $au = auth()->user(); $aid = $au->getAuthIdentifier(); if ($aid && in_array(intval($aid), $demoIds, true)) $isDemo = true; $aem = $au->email ?? ($au->correo ?? null); if ($aem && in_array(strtolower($aem), array_map('strtolower',$demoEmails), true)) $isDemo = true; }catch(\Throwable $e){}
+                    }
+                @endphp
+                @if(!$isDemo)
+                    <button id="runCleanupBtn" class="btn btn-danger">Ejecutar limpieza PWA</button>
+                    <button id="clearLogsBtn" class="btn btn--simple ms-2">Limpiar registros</button>
+                @else
+                    <div class="alert alert-warning">Herramienta no disponible para cuentas de demostración.</div>
+                @endif
             </div>
             <div class="alert alert-info" id="infoBox">Presiona "Ejecutar limpieza PWA" para iniciar. Revisa la consola y los registros abajo.</div>
             <div id="cleanupLogs" style="max-height:300px; overflow:auto; background:#f8f9fa; padding:12px; border-radius:6px; border:1px solid #ececec; font-family: monospace; white-space:pre-wrap;"></div>

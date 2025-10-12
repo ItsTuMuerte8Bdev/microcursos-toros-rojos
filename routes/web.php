@@ -96,6 +96,14 @@ Route::middleware('auth')->get('/admin/cleanup-pwa', function(){
     if (!$user || ($user->rol ?? null) !== 'admin') {
         abort(403);
     }
+    // Prevent demo admins from accessing this tool
+    $demoIds = [1,2];
+    $demoEmails = ['admin@demo.com','juan@demo.com'];
+    $isDemo = false;
+    try{ $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true; }catch(\Throwable $e){}
+    if ($isDemo) {
+        return redirect('/admin/cursos')->with('status','Cuenta de demostración: no tiene permiso para usar esta herramienta.');
+    }
     return view('admin.cleanup-pwa');
 })->name('admin.cleanup_pwa');
 
@@ -104,18 +112,32 @@ Route::middleware('auth')->match(['get','post'],'/admin/assign-instructors', fun
     $user = auth()->user();
     if (!$user || ($user->rol ?? null) !== 'admin') abort(403);
 
+    // Prevent demo-admins from performing mutating actions
+    $demoIds = [1,2];
+    $demoEmails = ['admin@demo.com','juan@demo.com'];
+    $isDemoAdmin = false;
+    try{ $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemoAdmin = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemoAdmin = true; }catch(\Throwable $e){}
+
     if ($request->isMethod('post')){
         \Log::info('assign-instructors POST payload', $request->all());
         $data = $request->validate([ 'instructor_id' => 'required|integer', 'employee_ids' => 'array' ]);
+        if ($isDemoAdmin){
+            return back()->with('status', 'Cuenta de demostración: no está permitido modificar asignaciones desde este perfil.');
+        }
         $instructor = intval($data['instructor_id']);
         $emps = isset($data['employee_ids']) ? array_map('intval', $data['employee_ids']) : [];
 
         // eliminar asignaciones previas para este instructor y guardar nuevas
-        InstructorEmployeeAssignment::where('instructor_id', $instructor)->delete();
         $created = 0;
-        foreach ($emps as $eid){
-            $row = InstructorEmployeeAssignment::create(['instructor_id' => $instructor, 'employee_id' => $eid]);
-            if ($row) $created++;
+        if (!$isDemoAdmin) {
+            InstructorEmployeeAssignment::where('instructor_id', $instructor)->delete();
+            foreach ($emps as $eid){
+                $row = InstructorEmployeeAssignment::create(['instructor_id' => $instructor, 'employee_id' => $eid]);
+                if ($row) $created++;
+            }
+        } else {
+            // Do not persist changes for demo-admins
+            \Log::info('assign-instructors prevented for demo admin', ['user_id' => $user->getAuthIdentifier(), 'payload' => $request->all()]);
         }
 
         return back()->with('status',"Asignaciones guardadas. Registros creados: {$created}");
@@ -188,6 +210,11 @@ Route::middleware('auth')->get('/instructor/employee/{id}/progress', function($i
 Route::middleware('auth')->get('/instructor/export-assigned', function(){
     $user = auth()->user();
     if (!$user || ($user->rol ?? null) !== 'instructor') abort(403);
+    // detect demo instructors to mask sensitive fields
+    $demoIds = [1,2];
+    $demoEmails = ['admin@demo.com','juan@demo.com'];
+    $isDemo = false;
+    try{ $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true; }catch(\Throwable $e){}
 
     $assigned = InstructorEmployeeAssignment::where('instructor_id', $user->id)->pluck('employee_id')->toArray();
     $rows = [];
@@ -196,12 +223,12 @@ Route::middleware('auth')->get('/instructor/export-assigned', function(){
             ->select('id_usuario','nombre','apellido','correo','rol')
             ->orderBy('nombre')
             ->get()
-            ->map(function($u){
+            ->map(function($u) use ($isDemo){
                 return [
                     'id_usuario' => $u->id_usuario,
                     'nombre' => $u->nombre,
                     'apellido' => $u->apellido,
-                    'correo' => $u->correo,
+                    'correo' => $isDemo ? 'correo_oculto@demo.local' : $u->correo,
                     'rol' => $u->rol,
                 ];
             })->toArray();

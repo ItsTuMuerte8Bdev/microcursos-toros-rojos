@@ -450,6 +450,15 @@ class AuthController extends Controller
             return response()->json(['error' => 'no autorizado'], 403);
         }
 
+        // Prevent demo admin from changing roles
+        $demoIds = [1,2];
+        $demoEmails = ['admin@demo.com','juan@demo.com'];
+        $isDemoAdmin = false;
+        try{ $aid = $auth->getAuthIdentifier(); if ($aid && in_array(intval($aid), $demoIds, true)) $isDemoAdmin = true; $aemail = $auth->email ?? ($auth->correo ?? null); if ($aemail && in_array(strtolower($aemail), array_map('strtolower',$demoEmails), true)) $isDemoAdmin = true; }catch(\Throwable $e){}
+        if ($isDemoAdmin){
+            return response()->json(['demo' => true, 'message' => 'Cuenta de demostración: no está permitido modificar roles desde este perfil.'], 200);
+        }
+
         $u = \App\Models\Usuario::find($request->input('id_usuario'));
         if (!$u) return response()->json(['error' => 'usuario no encontrado'], 404);
 
