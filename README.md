@@ -1,6 +1,6 @@
 # Microcursos Toros Rojos
 
-Microcursos Toros Rojos es una plataforma para crear, distribuir y seguir microcursos en línea desarrollada con Laravel. Está pensada para instructores y estudiantes que desean aprender en módulos cortos y prácticos.
+Microcursos Toros Rojos es una plataforma para crear, distribuir y seguir microcursos en línea desarrollada con Laravel. Está pensada para instructores y empleados que desean aprender en módulos cortos y prácticos.
 
 ## ¿Qué puedes hacer?
 
