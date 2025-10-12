@@ -1275,6 +1275,59 @@
             word-break: break-word !important;
         }
     </style>
+    <script>
+        // Global cleanup: ensure no leftover modal-backdrop or modal-open class remains
+        // Some code paths create/destroy modals dynamically; if a backdrop is left it blocks interaction.
+        (function(){
+            // Store scroll position when modal is shown (Bootstrap usually sets body.fixed and top)
+            document.addEventListener('show.bs.modal', function(e){
+                try{
+                    // Remember current scroll position on the modal element so we can restore later
+                    if(e && e.target) e.target.__prevScrollY = window.scrollY || window.pageYOffset || 0;
+                }catch(_){}
+            }, true);
+
+            document.addEventListener('hidden.bs.modal', function(e){
+                try{
+                    // blur focused element inside modal to avoid focus issues
+                    var focused = e.target && e.target.querySelector ? e.target.querySelector(':focus') : null;
+                    if(focused && typeof focused.blur === 'function') try{ focused.blur(); }catch(_){}
+
+                    // Small timeout to allow Bootstrap to finish its own cleanup before we force anything
+                    setTimeout(function(){
+                        try{
+                            // If no other modal is visible, restore body scrolling and remove modal-open
+                            var anyVisible = document.querySelector('.modal.show');
+                            if(!anyVisible){
+                                try{ document.body.classList.remove('modal-open'); }catch(_){ }
+
+                                // Remove inline styles commonly applied by modals or custom scripts that lock scroll
+                                try{
+                                    // If a script set body.style.top like '-123px', use it to restore scroll
+                                    var top = document.body.style.top;
+                                    if(top && /^-?\d+px$/.test(top)){
+                                        var n = parseInt(top.replace('px',''), 10) || 0;
+                                        window.scrollTo(0, -n);
+                                    }
+                                }catch(_){ }
+
+                                // Remove typical overflow/position styles that block scrolling
+                                try{ document.body.style.overflow = ''; }catch(_){ }
+                                try{ document.body.style.position = ''; }catch(_){ }
+                                try{ document.body.style.top = ''; }catch(_){ }
+                                try{ document.body.style.right = ''; }catch(_){ }
+                                try{ document.body.style.left = ''; }catch(_){ }
+                                try{ document.body.style.touchAction = ''; }catch(_){ }
+                            }
+
+                            // remove any orphaned backdrops
+                            document.querySelectorAll('.modal-backdrop').forEach(function(b){ try{ b.remove(); }catch(_){}});
+                        }catch(_){ }
+                    }, 40);
+                }catch(_){ }
+            }, true);
+        })();
+    </script>
     
 </body>
 </html>
