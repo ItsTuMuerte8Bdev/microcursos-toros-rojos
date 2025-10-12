@@ -63,4 +63,4 @@ Las cuentas demo tienen restricciones. No compres ni compartas credenciales real
 
 ---
 
-Gracias por probar Microcursos Toros Rojos.
+## Gracias por probar Microcursos Toros Rojos.
