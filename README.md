@@ -13,7 +13,7 @@ Microcursos Toros Rojos es una plataforma para crear, distribuir y seguir microc
 
 ## Sitio en vivo
 
-Visita el sitio en: https://bautista.castelancarpinteyro.com
+Visita el sitio en: https://jbautista.castelancarpinteyro.com
 
 ## Credenciales demo (solo para pruebas)
 
