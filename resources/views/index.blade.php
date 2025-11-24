@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: index.blade.php ------ --}}
+
 @section('title','Inicio | Los Toros Rojos')
 
 @section('content')
@@ -26,6 +28,8 @@
         </div>
     </div>
 @endsection
+
+{{-- ------ Fin: index.blade.php ------ --}}
 
 @push('scripts')
     <script>

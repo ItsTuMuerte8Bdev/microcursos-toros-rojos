@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: instructor/dashboard.blade.php ------ --}}
+
 @section('title','Panel de Instructor')
 
 @section('content')
@@ -48,6 +50,8 @@
     </div>
 </div>
 @endsection
+
+{{-- ------ Fin: instructor/dashboard.blade.php ------ --}}
 
 @push('scripts')
 <script>

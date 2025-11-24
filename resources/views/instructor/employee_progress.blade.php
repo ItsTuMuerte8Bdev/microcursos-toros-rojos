@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: instructor/employee_progress.blade.php ------ --}}
+
 @section('title','Progreso del empleado')
 
 @section('content')
@@ -28,6 +30,8 @@
     </div>
 
 @endsection
+
+{{-- ------ Fin: instructor/employee_progress.blade.php ------ --}}
 
 @push('scripts')
 <script>

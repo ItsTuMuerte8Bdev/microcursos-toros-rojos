@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: cursos/show.blade.php ------ --}}
+
 @section('title', $curso->titulo . ' | Curso')
 
 @section('content')
@@ -130,6 +132,8 @@
     </div>
 
 @endsection
+
+{{-- ------ Fin: cursos/show.blade.php ------ --}}
 
 @push('scripts')
     <script>window.CURSO_ID = {{ $curso->id_curso }};</script>

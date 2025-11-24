@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: admin/assign-instructors.blade.php ------ --}}
+
 @section('title','Asignar Empleados a Instructores')
 
 @section('content')
@@ -109,6 +111,8 @@
     </div>
 </div>
 @endsection
+
+{{-- ------ Fin: admin/assign-instructors.blade.php ------ --}}
 
 @push('scripts')
 <script>

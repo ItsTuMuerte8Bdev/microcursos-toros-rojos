@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: login.blade.php ------ --}}
+
 @section('title','Iniciar sesión | Los Toros Rojos')
 
 @section('content')
@@ -40,8 +42,7 @@
 <div class="row justify-content-center align-items-center pt-5" style="min-height:75vh;">
     <!-- Left column: form (card) -->
     <div class="col-12 col-md-7 d-flex justify-content-center">
-        <div class="card shadow-sm mx-auto" style="max-width:520px; width:100%;">
-            <div class="card-body p-4 d-flex flex-column" style="min-height:360px;">
+        <x-card classes="card shadow-sm mx-auto" style="max-width:520px; width:100%;" body-classes="card-body p-4 d-flex flex-column" body-style="min-height:360px;">
                 <!-- Top: title + intro -->
                 <div>
                     <h3 class="card-title mb-3">Iniciar sesión</h3>
@@ -104,8 +105,7 @@
                         ¿No tienes cuenta? <a href="{{ url('/register') }}">Regístrate</a>
                     </div>
                 </div>
-            </div>
-        </div>
+        </x-card>
     </div>
 
     <!-- Right column: info + OAuth -->
@@ -129,6 +129,8 @@
 </div>
 
 @endsection
+
+{{-- ------ Fin: login.blade.php ------ --}}
 
 @push('scripts')
 <script>

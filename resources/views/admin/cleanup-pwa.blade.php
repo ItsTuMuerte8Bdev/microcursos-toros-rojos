@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: admin/cleanup-pwa.blade.php ------ --}}
+
 @section('title','Limpieza PWA | Admin')
 
 @section('content')
@@ -33,6 +35,8 @@
     <p class="small text-muted">Nota: esto limpia el cliente actual. Para limpiar otros clientes, pídeles que visiten esta página mientras están autenticados como admin o usar otra estrategia centralizada.</p>
 </div>
 @endsection
+
+{{-- ------ Fin: admin/cleanup-pwa.blade.php ------ --}}
 
 @push('scripts')
 <script>

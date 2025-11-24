@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: admin/cursos/index.blade.php ------ --}}
+
 @section('title','Admin - Cursos')
 
 @section('content')
@@ -142,3 +144,5 @@
         })();
     </script>
 @endsection
+
+{{-- ------ Fin: admin/cursos/index.blade.php ------ --}}

@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: microcursos.blade.php ------ --}}
+
 @section('title','Mis Cursos | Los Toros Rojos')
 
 @section('content')
@@ -134,6 +136,8 @@
 
     </div>
 @endsection
+
+{{-- ------ Fin: microcursos.blade.php ------ --}}
 
 @push('scripts')
     <script src="{{ asset('js/microcursos.js') }}?v=5"></script>

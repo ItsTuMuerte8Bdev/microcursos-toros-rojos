@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: directorio.blade.php ------ --}}
+
 @section('title','Directorio | Los Toros Rojos')
 
 @section('content')
@@ -17,8 +19,7 @@
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3" id="directoryList">
             <!-- Card: Director General -->
             <div class="col">
-                <div class="card h-100 text-center">
-                    <div class="card-body">
+                <x-card classes="card h-100 text-center" body-classes="card-body">
                         <img src="{{ asset('images/Logo General.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid var(--color-primary);">
                         <div class="person-details">
                             <h5 class="card-title mb-1">Jovan Bautista</h5>
@@ -26,14 +27,12 @@
                             <p class="small text-muted mb-1">Email: <a href="mailto:jovan@torosrojos.com">jovan@torosrojos.com</a></p>
                             <p class="small text-muted">Tel: <a href="tel:+525512345000">+52 55 1234 5000</a></p>
                         </div>
-                    </div>
-                </div>
+                </x-card>
             </div>
 
             <!-- Card: Jefe de Contenido -->
             <div class="col">
-                <div class="card h-100 text-center">
-                    <div class="card-body">
+                <x-card classes="card h-100 text-center" body-classes="card-body">
                         <img src="{{ asset('images/Toro Cursos.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid var(--color-primary);">
                         <div class="person-details">
                             <h5 class="card-title mb-1">María López</h5>
@@ -41,14 +40,12 @@
                             <p class="small text-muted mb-1">Email: <a href="mailto:maria@torosrojos.com">maria@torosrojos.com</a></p>
                             <p class="small text-muted">Tel: <a href="tel:+525512345001">+52 55 1234 5001</a></p>
                         </div>
-                    </div>
-                </div>
+                </x-card>
             </div>
 
             <!-- Card: Responsable de Operaciones -->
             <div class="col">
-                <div class="card h-100 text-center">
-                    <div class="card-body">
+                <x-card classes="card h-100 text-center" body-classes="card-body">
                         <img src="{{ asset('images/Toro Contacto.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid var(--color-primary);">
                         <div class="person-details">
                             <h5 class="card-title mb-1">Carlos Méndez</h5>
@@ -56,14 +53,12 @@
                             <p class="small text-muted mb-1">Email: <a href="mailto:carlos@torosrojos.com">carlos@torosrojos.com</a></p>
                             <p class="small text-muted">Tel: <a href="tel:+525512345002">+52 55 1234 5002</a></p>
                         </div>
-                    </div>
-                </div>
+                </x-card>
             </div>
 
             <!-- Additional fictional roles -->
             <div class="col">
-                <div class="card h-100 text-center">
-                    <div class="card-body">
+                <x-card classes="card h-100 text-center" body-classes="card-body">
                         <img src="{{ asset('images/Toro Cursos.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid var(--color-primary);">
                         <div class="person-details">
                             <h5 class="card-title mb-1">Lucía Ramos</h5>
@@ -71,13 +66,11 @@
                             <p class="small text-muted mb-1">Email: <a href="mailto:lucia@torosrojos.com">lucia@torosrojos.com</a></p>
                             <p class="small text-muted">Tel: <a href="tel:+525512345003">+52 55 1234 5003</a></p>
                         </div>
-                    </div>
-                </div>
+                </x-card>
             </div>
 
             <div class="col">
-                <div class="card h-100 text-center">
-                    <div class="card-body">
+                <x-card classes="card h-100 text-center" body-classes="card-body">
                         <img src="{{ asset('images/Toro Contacto.png') }}" alt="Avatar" class="rounded-circle avatar-img" style="width:96px;height:96px;object-fit:cover;border:4px solid var(--color-primary);">
                         <div class="person-details">
                             <h5 class="card-title mb-1">Diego Vargas</h5>
@@ -85,8 +78,7 @@
                             <p class="small text-muted mb-1">Email: <a href="mailto:diego@torosrojos.com">diego@torosrojos.com</a></p>
                             <p class="small text-muted">Tel: <a href="tel:+525512345004">+52 55 1234 5004</a></p>
                         </div>
-                    </div>
-                </div>
+                </x-card>
             </div>
 
             <div class="col">
@@ -106,6 +98,8 @@
         </div>
     </div>
 @endsection
+
+{{-- ------ Fin: directorio.blade.php ------ --}}
 
 @push('scripts')
     <script>

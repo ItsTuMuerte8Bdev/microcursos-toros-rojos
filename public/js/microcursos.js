@@ -4,26 +4,12 @@
     // re-ejecutarla tras navegaciones parciales (PJAX/Turbolinks/HTMX)
     // o cuando el DOM esté listo.
     function initMicrocursos() {
-        // small debounce helper to avoid excessive work while typing
-        function debounce(fn, wait){
-            let t = null;
-            return function(){
-                const ctx = this, args = arguments;
-                clearTimeout(t);
-                t = setTimeout(function(){ fn.apply(ctx, args); }, wait);
-            };
-        }
-        function $(sel) { return document.querySelector(sel); }
-        function $all(sel) { return Array.from(document.querySelectorAll(sel)); }
-
-        // Helper to build a localStorage key for activity 'done' state.
-        // Scope it by current user when available to avoid leaking marks between users/sessions.
-        function activityDoneKey() {
-            // use 'anon' when no authenticated user is present
-            const userPart = (typeof window.CURRENT_USER !== 'undefined' && window.CURRENT_USER) ? String(window.CURRENT_USER) : 'anon';
-            const lessonPart = (window.LECCION_ID || 'global');
-            return `activity_done_${userPart}_${lessonPart}`;
-        }
+        // Use shared utilities when available (keeps backward compatibility)
+        const _utils = (window.MicrocursosUtils || {});
+        const debounce = _utils.debounce || function(fn, wait){ let t=null; return function(){ const ctx=this,args=arguments; clearTimeout(t); t=setTimeout(function(){ fn.apply(ctx,args); }, wait); }; };
+        const $ = _utils.$ || function(sel){ try{ return document.querySelector(sel); }catch(e){ return null; } };
+        const $all = _utils.$all || function(sel){ try{ return Array.from(document.querySelectorAll(sel)); }catch(e){ return []; } };
+        const activityDoneKey = _utils.activityDoneKey || function(){ const userPart = (typeof window.CURRENT_USER !== 'undefined' && window.CURRENT_USER) ? String(window.CURRENT_USER) : 'anon'; const lessonPart = (window.LECCION_ID || 'global'); return `activity_done_${userPart}_${lessonPart}`; };
 
     // Example content for demo (would come from DB or API). If server injected lesson-specific HTML, use it.
     const exampleHtml = (window.LESSON_EXAMPLE_HTML && typeof window.LESSON_EXAMPLE_HTML === 'string') ? window.LESSON_EXAMPLE_HTML : `
@@ -34,160 +20,10 @@
         </div>
     `;
 
-        // Helper de toasts (Bootstrap 5) - crea el contenedor y muestra toasts con icono
-        function ensureToastContainer() {
-            const existing = document.getElementById('appToasts');
-            if (existing) return existing;
-            const container = document.createElement('div');
-            container.id = 'appToasts';
-            container.style.position = 'fixed';
-            container.style.top = '1rem';
-            container.style.right = '1rem';
-            container.style.zIndex = 1080;
-            container.setAttribute('aria-live', 'polite');
-            container.setAttribute('aria-atomic', 'true');
-            document.body.appendChild(container);
-            return container;
-        }
-
-        function showBootstrapToast(type, title, message) {
-            // tipos: success, info, warning, danger
-            const container = ensureToastContainer();
-            const id = 'toast_' + Date.now() + Math.floor(Math.random() * 1000);
-            const iconMap = {
-                success: 'bi-check-circle-fill',
-                info: 'bi-info-circle-fill',
-                warning: 'bi-exclamation-triangle-fill',
-                danger: 'bi-x-circle-fill'
-            };
-
-            const bgClass = type === 'danger' ? 'bg-danger text-white' : (type === 'warning' ? 'bg-warning text-dark' : 'bg-light');
-            const useWhiteClose = type === 'danger';
-
-            const toast = document.createElement('div');
-            toast.className = 'toast ' + bgClass;
-            toast.id = id;
-            toast.role = 'alert';
-            toast.ariaLive = 'assertive';
-            toast.ariaAtomic = 'true';
-            toast.style.minWidth = '250px';
-            toast.style.marginBottom = '0.5rem';
-
-            toast.innerHTML = `
-                <div class="d-flex align-items-start">
-                    <div class="toast-body">
-                        <div class="d-flex align-items-center">
-                            <div style="font-size:1.2rem; margin-right:0.5rem"><i class="bi ${iconMap[type] || 'bi-info-circle-fill'}"></i></div>
-                            <div>
-                                <div style="font-weight:600">${title}</div>
-                                <div style="font-size:0.9rem">${message}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <button type="button" class="${useWhiteClose ? 'btn-close btn-close-white' : 'btn-close'} me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
-                </div>
-            `;
-
-            container.appendChild(toast);
-
-            // Inicializar con Bootstrap si está disponible
-            try {
-                if (window.bootstrap && window.bootstrap.Toast) {
-                    const btoast = new bootstrap.Toast(toast, { delay: 5000 });
-                    btoast.show();
-                    toast.addEventListener('hidden.bs.toast', () => { toast.remove(); });
-                } else {
-                    // Fallback: eliminar tras un retraso
-                    setTimeout(() => { toast.remove(); }, 5000);
-                }
-            } catch (e) {
-                setTimeout(() => { toast.remove(); }, 5000);
-            }
-        }
-
-        // Exponer globalmente para que vistas blade/inline scripts puedan llamarlo
+        // Toast and modal helpers: prefer shared utils if present
+        const showBootstrapToast = _utils.showBootstrapToast || function(type, title, message){ try{ if(window.MicrocursosUtils && window.MicrocursosUtils.showBootstrapToast) return window.MicrocursosUtils.showBootstrapToast(type, title, message); }catch(e){} /* no-op fallback */ };
+        const showCenteredModal = _utils.showCenteredModal || function(type, title, message){ try{ if(window.MicrocursosUtils && window.MicrocursosUtils.showCenteredModal) return window.MicrocursosUtils.showCenteredModal(type, title, message); }catch(e){} alert(title + '\n\n' + message); };
         try { window.showBootstrapToast = showBootstrapToast; } catch (e) {}
-
-        // Centered modal helper (style like capture 2)
-        // Modal centrado con título y contenido (útil para mostrar soluciones o avisos)
-        function showCenteredModal(type, title, message) {
-            // type: success, info, warning, danger
-            const iconMap = {
-                success: 'bi-check-circle-fill',
-                info: 'bi-info-circle-fill',
-                warning: 'bi-exclamation-triangle-fill',
-                danger: 'bi-x-circle-fill'
-            };
-            const colorMap = {
-                success: 'text-success',
-                info: 'text-primary',
-                warning: 'text-warning',
-                danger: 'text-danger'
-            };
-
-            const modalId = 'centeredModal_' + Date.now() + Math.floor(Math.random() * 1000);
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = `
-                <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content" style="border-radius:12px;">
-                            <div class="modal-body text-center p-4">
-                                <div class="mb-3" style="font-size:3rem;"><i class="bi ${iconMap[type] || 'bi-info-circle-fill'} ${colorMap[type] || 'text-primary'}"></i></div>
-                                <h4 class="mb-2" style="font-weight:700; font-size:1.1rem; word-break:break-word; margin-bottom:0.5rem;">${title}</h4>
-                                <div class="mb-3 activity-modal-body" style="background: rgba(255,255,255,0.94) !important; color: #050505 !important; font-size:0.95rem !important; line-height:1.6 !important; text-align:left !important; font-weight:400 !important; opacity:1 !important; padding:0.6rem 0.8rem; border-radius:8px; box-shadow: 0 1px 0 rgba(0,0,0,0.02) inset;">
-                                    ${message}
-                                </div>
-                                <div class="d-grid">
-                                    <button type="button" class="btn btn-${type === 'danger' ? 'secondary' : 'primary'}" data-bs-dismiss="modal">Cerrar</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(wrapper);
-            const modalEl = document.getElementById(modalId);
-
-            // Forzar estilos legibles dentro del body de la actividad para evitar reglas globales que lo
-            // hagan aparecer atenuado.
-            try {
-                const actBody = modalEl.querySelector('.activity-modal-body');
-                if (actBody) {
-                    try {
-                        actBody.style.setProperty('color', '#0b0b0b', 'important');
-                        actBody.style.setProperty('opacity', '1', 'important');
-                        actBody.style.setProperty('filter', 'none', 'important');
-                        actBody.style.setProperty('-webkit-filter', 'none', 'important');
-                        actBody.style.setProperty('mix-blend-mode', 'normal', 'important');
-                        actBody.style.setProperty('background', 'rgba(255,255,255,0.98)', 'important');
-                    } catch (e) {}
-
-                    const children = actBody.querySelectorAll('*');
-                    children.forEach(function (el) {
-                        try {
-                            el.style.setProperty('color', '#0b0b0b', 'important');
-                            el.style.setProperty('opacity', '1', 'important');
-                            el.style.setProperty('filter', 'none', 'important');
-                            el.style.setProperty('-webkit-filter', 'none', 'important');
-                            el.style.setProperty('mix-blend-mode', 'normal', 'important');
-                            el.style.setProperty('background', 'transparent', 'important');
-                        } catch (e) {}
-                    });
-                }
-            } catch (e) {}
-
-            try {
-                const bsModal = new bootstrap.Modal(modalEl);
-                modalEl.addEventListener('hidden.bs.modal', function () { try { modalEl.remove(); } catch (e) {} });
-                bsModal.show();
-            } catch (e) {
-                // Fallback: alert
-                alert(title + '\n\n' + message);
-                try { modalEl.remove(); } catch (e) {}
-            }
-        }
-        try { window.showCenteredModal = showCenteredModal; } catch (e) {}
 
     if (document.getElementById('exampleArea')){
         document.getElementById('exampleArea').innerHTML = exampleHtml;
@@ -197,10 +33,11 @@
         });
     }
 
+    // ------  Funciones de los botones  ------
     // Activity: generate some options
     if (document.getElementById('activityOptions')){
         // Allow server to inject custom activity options via window.LESSON_ACTIVITY_OPTIONS (array of {text, safe})
-        const options = (Array.isArray(window.LESSON_ACTIVITY_OPTIONS) && window.LESSON_ACTIVITY_OPTIONS.length) ? window.LESSON_ACTIVITY_OPTIONS : [
+                const options = (Array.isArray(window.LESSON_ACTIVITY_OPTIONS) && window.LESSON_ACTIVITY_OPTIONS.length) ? window.LESSON_ACTIVITY_OPTIONS : [
             {text: 'https://www.bbva.mx', safe: true},
             {text: 'http://secure-login.verify-account.com', safe: false},
             {text: 'https://accounts.google.com', safe: true},
@@ -307,6 +144,9 @@
         });
     }
 
+    // ----- Fin de funciones de los botones -----
+
+    // ------  Funciones de los botones  (Quiz) ------
     // Quiz (single or multi-question with choices)
     if (document.getElementById('quizOptions')){
         const quizContainer = document.getElementById('quizOptions');
@@ -416,6 +256,9 @@
         }
     }
 
+    // ----- Fin de funciones de los botones (Quiz) -----
+
+    // ------  Funciones de los botones  (Mark complete) ------
     // Mark complete -> POST progress
     if (document.getElementById('markComplete')){
         // Apply initial visual state from data attribute (server-side rendered)

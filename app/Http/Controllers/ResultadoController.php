@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 use App\Models\Resultado;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Http\Controllers\Concerns\DemoProtect;
 
 class ResultadoController extends Controller
 {
+    use DemoProtect;
     public function index(Request $request)
     {
         $query = Resultado::query();
@@ -27,15 +29,7 @@ class ResultadoController extends Controller
 
         // Use authenticated user id to avoid spoofing
         $validated['id_usuario'] = auth()->id();
-        // Block demo users from persisting resultados (configured list)
-        $isDemo = false;
-        try{
-            $demoIds = config('demo.ids', []);
-            $demoEmails = config('demo.emails', []);
-            $user = auth()->user(); if ($user){ $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true; }
-        }catch(\Throwable $e){}
-
-        if ($isDemo){
+        if ($this->isDemoUser(auth()->user())) {
             return response()->json(['demo' => true, 'message' => 'Cuenta de demostración: el resultado no se guardó en la base de datos.'], 200);
         }
 

@@ -6,9 +6,11 @@ use App\Models\Leccion;
 use App\Models\Resultado;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Concerns\DemoProtect;
 
 class ProgresoController extends Controller
 {
+    use DemoProtect;
     public function index(Request $request)
     {
         $query = Progreso::query();
@@ -28,16 +30,7 @@ class ProgresoController extends Controller
 
         // Prefer authenticated user when available
         $userId = Auth::id() ?: ($data['id_usuario'] ?? null);
-        // Block demo users from persisting progreso
-            $isDemo = false;
-            try{
-                $demoIds = config('demo.ids', []);
-                $demoEmails = config('demo.emails', []);
-                $user = Auth::user(); if ($user){ $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true; $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true; } 
-            }catch(\Throwable $e){ $isDemo = false; }
-
-        if ($isDemo){
-            // Return a friendly JSON indicating the operation was simulated but not persisted.
+        if ($this->isDemoUser(Auth::user())) {
             return response()->json(['demo' => true, 'message' => 'Cuenta de demostración: el progreso se mantiene localmente pero no se guarda en la base de datos.'], 200);
         }
         if (!$userId) {

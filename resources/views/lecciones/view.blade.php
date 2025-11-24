@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: lecciones/view.blade.php ------ --}}
+
 @section('title', $leccion->titulo . ' | Lección')
 
 @section('content')
@@ -135,6 +137,8 @@
     </div>
 
 @endsection
+
+{{-- ------ Fin: lecciones/view.blade.php ------ --}}
 
 @push('scripts')
     <script>

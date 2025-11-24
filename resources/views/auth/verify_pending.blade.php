@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: auth/verify_pending.blade.php ------ --}}
+
 @section('title','Verifica tu correo')
 
 @section('content')
@@ -74,3 +76,5 @@
     </div>
 </div>
 @endsection
+
+{{-- ------ Fin: auth/verify_pending.blade.php ------ --}}

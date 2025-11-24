@@ -1,12 +1,13 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: perfil/edit.blade.php ------ --}}
+
 @section('title','Editar perfil')
 
 @section('content')
 <div class="row justify-content-center">
     <div class="col-12 col-md-6">
-        <div class="card shadow-sm mx-auto" style="max-width:720px; width:100%;">
-            <div class="card-body p-4 d-flex flex-column" style="min-height:320px;">
+        <x-card classes="card shadow-sm mx-auto" style="max-width:720px; width:100%;" body-classes="card-body p-4 d-flex flex-column" body-style="min-height:320px;">
                 <div>
                     <h3 class="card-title mb-2">Editar información personal</h3>
                     <p class="text-muted">Actualiza tu nombre, apellido y género. Esta información se mostrará en tu perfil.</p>
@@ -64,8 +65,9 @@
                 <div class="mt-auto text-center">
                     <!-- optional footer inside card -->
                 </div>
-            </div>
-        </div>
+        </x-card>
     </div>
 </div>
 @endsection
+
+{{-- ------ Fin: perfil/edit.blade.php ------ --}}

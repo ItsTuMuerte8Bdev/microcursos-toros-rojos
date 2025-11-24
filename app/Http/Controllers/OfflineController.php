@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Progreso;
+use App\Http\Controllers\Concerns\DemoProtect;
 
 class OfflineController extends Controller
 {
+    use DemoProtect;
     // Sync progress sent from the client while offline
     public function syncProgress(Request $request)
     {
@@ -14,17 +16,7 @@ class OfflineController extends Controller
         if (!$user) {
             return response()->json(['error' => 'Usuario no autenticado'], 401);
         }
-
-        // Block demo users from sync persisting into DB (configured list)
-        $isDemo = false;
-        try{
-            $demoIds = config('demo.ids', []);
-            $demoEmails = config('demo.emails', []);
-            $uid = $user->getAuthIdentifier(); if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true;
-            $email = $user->email ?? ($user->correo ?? null); if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true;
-        }catch(\Throwable $e){}
-
-        if ($isDemo){
+        if ($this->isDemoUser($user)) {
             return response()->json(['demo' => true, 'message' => 'Cuenta de demostración: el progreso no se guardó en la base de datos.'], 200);
         }
 

@@ -1,12 +1,13 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: perfil/password.blade.php ------ --}}
+
 @section('title','Cambiar contraseña')
 
 @section('content')
 <div class="row justify-content-center">
     <div class="col-12 col-md-6">
-        <div class="card shadow-sm mx-auto" style="max-width:720px; width:100%;">
-            <div class="card-body p-4 d-flex flex-column" style="min-height:320px;">
+        <x-card classes="card shadow-sm mx-auto" style="max-width:720px; width:100%;" body-classes="card-body p-4 d-flex flex-column" body-style="min-height:320px;">
                 <div>
                     <h3 class="card-title mb-2">Cambiar contraseña</h3>
                     <p class="text-muted">Introduce tu contraseña actual y la nueva para actualizarla.</p>
@@ -59,8 +60,9 @@
                 <div class="mt-auto text-center">
                     <!-- optional footer inside card -->
                 </div>
-            </div>
-        </div>
+        </x-card>
     </div>
 </div>
 @endsection
+
+{{-- ------ Fin: perfil/password.blade.php ------ --}}

@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: password/email.blade.php ------ --}}
+
 @section('title','Recuperar contraseña | Los Toros Rojos')
 
 @section('content')
@@ -21,8 +23,7 @@
 <div class="row justify-content-center align-items-center pt-5" style="min-height:75vh;">
     <!-- Left column: form (card) -->
     <div class="col-12 col-md-9 d-flex justify-content-center">
-        <div class="card shadow-sm mx-auto" style="max-width:760px; width:100%;">
-            <div class="card-body p-4 d-flex flex-column" style="min-height:320px;">
+            <x-card classes="card shadow-sm mx-auto" style="max-width:760px; width:100%;" body-classes="card-body p-4 d-flex flex-column" body-style="min-height:320px;">
                 <!-- Top: title + intro -->
                 <div>
                     <h3 class="card-title mb-3">Recuperar contraseña</h3>
@@ -61,8 +62,7 @@
                         ¿Recuerdas tu contraseña? <a href="{{ url('/login') }}">Inicia sesión</a>
                     </div>
                 </div>
-            </div>
-        </div>
+            </x-card>
     </div>
 
     <!-- Right column: small toro image -->
@@ -84,3 +84,5 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 @endpush
+
+{{-- ------ Fin: password/email.blade.php ------ --}}

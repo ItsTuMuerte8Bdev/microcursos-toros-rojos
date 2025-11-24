@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+{{-- ------ Inicio: downloads/manage.blade.php ------ --}}
+
 @section('title','Administrar descargas | Los Toros Rojos')
 
 @section('content')
@@ -54,6 +56,8 @@
 </div>
 
 @endsection
+
+{{-- ------ Fin: downloads/manage.blade.php ------ --}}
 
 @push('scripts')
 <script>

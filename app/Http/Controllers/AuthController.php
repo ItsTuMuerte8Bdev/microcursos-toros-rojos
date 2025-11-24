@@ -10,42 +10,27 @@ use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Usuario;
 use App\Mail\VerifyEmail;
+use App\Http\Controllers\Concerns\DemoProtect;
 
 class AuthController extends Controller
 {
-    // Handle email/password login
+    use DemoProtect;
+    // ------  Autenticación: login / logout  ------
     public function login(Request $request)
     {
-        // The app uses 'correo' as username column in Usuarios table
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
-
-        // Map form field 'email' to DB column 'correo'
+        $request->validate(['email' => 'required|email', 'password' => 'required|string']);
         $credentials = ['correo' => $request->input('email'), 'password' => $request->input('password')];
 
-        // end debug
-
         $redirectTo = $request->input('redirect_to');
-
-        if(Auth::attempt($credentials, $request->filled('remember'))){
-            $user = Auth::user();
-            // If you'd like completed courses to be auto-saved, handle that here.
-            // e.g. sync local session progress into DB.
-
-            // If redirect_to provided, only redirect to internal paths for safety
+        if (Auth::attempt($credentials, $request->filled('remember'))) {
             if ($redirectTo && str_starts_with($redirectTo, '/') && !str_contains($redirectTo, '://')) {
                 return redirect()->to($redirectTo);
             }
-
             return redirect()->intended('/microcursos');
         }
-
         return back()->withErrors(['email' => 'Credenciales inválidas'])->withInput();
     }
 
-    // Logout
     public function logout(Request $request)
     {
         Auth::logout();
@@ -54,10 +39,9 @@ class AuthController extends Controller
         return redirect('/');
     }
 
-    // Handle registration
+    // ------  Registro y verificación por email  ------
     public function register(Request $request)
     {
-
         $request->validate([
             'name' => 'required|string|max:100',
             'apellido' => 'required|string|max:100',
@@ -66,274 +50,127 @@ class AuthController extends Controller
             'sexo' => 'nullable|in:masculino,femenino,no binario',
         ]);
 
-        // Create the user in the usuarios table with a verification token
         $token = Str::random(64);
         $usuario = Usuario::create([
             'nombre' => $request->input('name'),
             'apellido' => $request->input('apellido'),
             'correo' => $request->input('email'),
             'password' => Hash::make($request->input('password')),
-            // default role for self-registered users
             'rol' => 'empleado',
-            'proveedor_oauth' => null,
-            'proveedor_id' => null,
             'sexo' => $request->input('sexo') ?? 'no binario',
-            'estado' => 'inactivo', // until verified
+            'estado' => 'inactivo',
             'fecha_registro' => now(),
             'verification_token' => $token,
-            // store when the verification email was sent so the UI / audits can show it
             'verification_sent_at' => now(),
-            // explicitly null until verified
             'email_verified_at' => null,
         ]);
 
-        // Send verification email (best-effort)
-        try {
-            Mail::to($usuario->correo)->send(new VerifyEmail($usuario, $token));
-        } catch (\Exception $e) {
-            // Log or ignore: in local env mail may not be configured
-            logger()->warning('Failed to send verification email: '.$e->getMessage());
-        }
-
-        // Redirect user to login with a status message to check their email
+        $this->sendVerificationEmail($usuario, $token);
         return redirect('/login')->with('status', 'Hemos enviado un correo para verificar tu cuenta. Revisa tu bandeja.');
     }
 
-    // AJAX endpoint to validate an email quickly (format, uniqueness, MX records)
-    public function checkEmail(Request $request)
-    {
-        $request->validate(['email' => 'required|email']);
-
-        $email = $request->input('email');
-
-        // Check uniqueness in usuarios table
-        if (Usuario::where('correo', $email)->exists()) {
-            return response()->json(['ok' => false, 'message' => 'El correo ya está en uso']);
-        }
-
-        // Check domain MX records to heuristically verify that the email domain can receive mail
-        $domain = substr(strrchr($email, "@"), 1);
-        $hasMx = false;
-        if ($domain) {
-            if (function_exists('checkdnsrr')) {
-                $hasMx = checkdnsrr($domain, 'MX');
-            } elseif (function_exists('getmxrr')) {
-                $hasMx = getmxrr($domain, $mxhosts);
-            }
-        }
-
-        if (!$hasMx) {
-            return response()->json(['ok' => false, 'message' => 'No se encontraron registros MX para el dominio; verifica que el correo exista']);
-        }
-
-        return response()->json(['ok' => true, 'message' => 'El correo parece válido']);
-    }
-
-    // Verify email token
     public function verifyEmail($token)
     {
         $usuario = Usuario::where('verification_token', $token)->first();
-        if (!$usuario) {
-            return redirect('/login')->withErrors(['verification' => 'Token inválido o expirado']);
-        }
+        if (!$usuario) return redirect('/login')->withErrors(['verification' => 'Token inválido o expirado']);
 
-        // token expiry: 24 hours
         if ($usuario->verification_sent_at && now()->diffInHours($usuario->verification_sent_at) > 24) {
             return redirect()->route('register.verify.pending')->withErrors(['verification' => 'El enlace ha expirado. Por favor solicita un reenvío.']);
         }
 
-        $usuario->verification_token = null;
-        $usuario->email_verified_at = now();
-        $usuario->estado = 'activo';
-        $usuario->verification_sent_at = null;
-        $usuario->save();
-
-        // Log in the user
+        $usuario->update(['verification_token' => null, 'email_verified_at' => now(), 'estado' => 'activo', 'verification_sent_at' => null]);
         Auth::login($usuario);
-
         return redirect('/microcursos')->with('status', 'Correo verificado. Bienvenido!');
     }
 
-    // Show a page explaining the user must verify their email and allow re-send/change
     public function showVerifyPending()
     {
         return view('auth.verify_pending');
     }
 
-    // Resend verification email
     public function resendVerification(Request $request)
     {
         $request->validate(['email' => 'required|email']);
-
         $usuario = Usuario::where('correo', $request->input('email'))->first();
-        if (!$usuario) {
-            return back()->withErrors(['email' => 'No existe una cuenta con ese correo']);
-        }
+        if (!$usuario) return back()->withErrors(['email' => 'No existe una cuenta con ese correo']);
+        if ($usuario->email_verified_at) return back()->with('status', 'El correo ya fue verificado');
 
-        if ($usuario->email_verified_at) {
-            return back()->with('status', 'El correo ya fue verificado');
-        }
-
-        // generate new token and set sent_at
         $token = Str::random(64);
-        $usuario->verification_token = $token;
-        $usuario->verification_sent_at = now();
-        $usuario->save();
-
-        try{
-            Mail::to($usuario->correo)->send(new VerifyEmail($usuario, $token));
-        } catch (\Exception $e) {
-            logger()->warning('Failed to send verification email: '.$e->getMessage());
+        $usuario->update(['verification_token' => $token, 'verification_sent_at' => now()]);
+        if (!$this->sendVerificationEmail($usuario, $token)) {
             return back()->withErrors(['email' => 'No se pudo enviar el correo de verificación en este momento']);
         }
-
         return back()->with('status', 'Correo de verificación reenviado. Revisa tu bandeja.');
     }
 
-    // Change the email associated to the account (before verification)
     public function changeEmail(Request $request)
     {
-        $request->validate([
-            'old_email' => 'required|email',
-            'new_email' => 'required|email|unique:usuarios,correo',
-        ]);
-
+        $request->validate(['old_email' => 'required|email', 'new_email' => 'required|email|unique:usuarios,correo']);
         $usuario = Usuario::where('correo', $request->input('old_email'))->first();
-        if (!$usuario) {
-            return back()->withErrors(['old_email' => 'La cuenta original no fue encontrada']);
-        }
+        if (!$usuario) return back()->withErrors(['old_email' => 'La cuenta original no fue encontrada']);
+        if ($usuario->email_verified_at) return back()->withErrors(['old_email' => 'La cuenta ya está verificada']);
 
-        if ($usuario->email_verified_at) {
-            return back()->withErrors(['old_email' => 'La cuenta ya está verificada']);
-        }
-
-        // update email, generate new token
         $token = Str::random(64);
-        $usuario->correo = $request->input('new_email');
-        $usuario->verification_token = $token;
-        $usuario->verification_sent_at = now();
-        $usuario->save();
-
-        try{
-            Mail::to($usuario->correo)->send(new VerifyEmail($usuario, $token));
-        } catch (\Exception $e) {
-            logger()->warning('Failed to send verification email after change: '.$e->getMessage());
+        $usuario->update(['correo' => $request->input('new_email'), 'verification_token' => $token, 'verification_sent_at' => now()]);
+        if (!$this->sendVerificationEmail($usuario, $token)) {
             return back()->withErrors(['new_email' => 'No se pudo enviar el correo de verificación al nuevo email']);
         }
-
         return back()->with('status', 'Se actualizó el correo y se reenvi&oacute; el email de verificación.');
     }
 
-    // Redirect to provider (google, github)
-    public function redirectToProvider($provider)
+    // ------  Validaciones y utilitarios públicos  ------
+    public function checkEmail(Request $request)
     {
-        // Will use Socialite if available. If Socialite isn't installed yet, instruct the developer.
-        if(!in_array($provider, ['google','github'])){
-            abort(404);
-        }
+        $request->validate(['email' => 'required|email']);
+        $email = $request->input('email');
+        if (Usuario::where('correo', $email)->exists()) return response()->json(['ok' => false, 'message' => 'El correo ya está en uso']);
 
-        // Use Laravel Socialite if available
-        if(class_exists('\Laravel\Socialite\Facades\Socialite')){
-            $driver = \Laravel\Socialite\Facades\Socialite::driver($provider);
-            // Use stateless for Google to avoid session/state issues behind proxies
-            // or when SameSite cookies block the state cookie. Stateful flow is
-            // still used for other providers by default.
-            if ($provider === 'google') {
-                return $driver->stateless()->redirect();
-            }
-
-            return $driver->redirect();
-        }
-
-        // Fallback: show message
-        return response('Socialite is not installed. Run: composer require laravel/socialite', 501);
+        $domain = substr(strrchr($email, "@"), 1);
+        $hasMx = $domain && (function_exists('checkdnsrr') ? checkdnsrr($domain, 'MX') : (function_exists('getmxrr') ? getmxrr($domain, $mx) : false));
+        if (!$hasMx) return response()->json(['ok' => false, 'message' => 'No se encontraron registros MX para el dominio; verifica que el correo exista']);
+        return response()->json(['ok' => true, 'message' => 'El correo parece válido']);
     }
 
-    // Handle provider callback
+    // ------  OAuth (Socialite)  ------
+    public function redirectToProvider($provider)
+    {
+        if (!in_array($provider, ['google', 'github'])) abort(404);
+        if (!class_exists('\Laravel\Socialite\Facades\Socialite')) return response('Socialite is not installed. Run: composer require laravel/socialite', 501);
+        $driver = \Laravel\Socialite\Facades\Socialite::driver($provider);
+        return $provider === 'google' ? $driver->stateless()->redirect() : $driver->redirect();
+    }
+
     public function handleProviderCallback(\Illuminate\Http\Request $request, $provider)
     {
-        if(!in_array($provider, ['google','github'])){
-            abort(404);
-        }
+        if (!in_array($provider, ['google', 'github'])) abort(404);
+        if (!class_exists('\Laravel\Socialite\Facades\Socialite')) return response('Socialite is not installed. Run: composer require laravel/socialite', 501);
 
-        if(!class_exists('\Laravel\Socialite\Facades\Socialite')){
-            return response('Socialite is not installed. Run: composer require laravel/socialite', 501);
-        }
+        logger()->info('OAuth callback', ['provider' => $provider, 'query' => $request->query()]);
 
-        // Log incoming request to debug missing `code` issues (Google returns ?code=... on success)
-        logger()->info('OAuth callback request', [
-            'provider' => $provider,
-            'query' => $request->query(),
-            'input' => $request->all(),
-            'method' => $request->method(),
-        ]);
-
-        // Log provider config for debugging (redirect uri, client id presence)
-        try{
-            $svc = config('services.' . $provider);
-        } catch(\Throwable $t){
-            $svc = null;
-        }
-        logger()->info('Socialite provider config', ['provider' => $provider, 'config' => $svc]);
-
-        try{
-            // Prefer stateless for Google to bypass state mismatch issues seen in
-            // environments with proxying or SameSite cookie restrictions. For
-            // other providers, keep the default (stateful) behavior.
+        try {
             $driver = \Laravel\Socialite\Facades\Socialite::driver($provider);
-            if ($provider === 'google') {
-                $socialUser = $driver->stateless()->user();
-            } else {
-                $socialUser = $driver->user();
-            }
-        } catch(\Exception $e){
-            // Log full exception for diagnostics (message, code and stack)
-            logger()->error('Socialite callback exception (initial)', [
-                'provider' => $provider,
-                'message' => $e->getMessage(),
-                'code' => $e->getCode(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            // Try stateless fallback: this bypasses state check and sometimes helps when the
-            // session/state was lost by the time the callback arrives (proxies, SWs, SameSite).
-            try{
-                logger()->info('Attempting stateless fallback for Socialite provider', ['provider' => $provider]);
+            $socialUser = $provider === 'google' ? $driver->stateless()->user() : $driver->user();
+        } catch (\Exception $e) {
+            logger()->error('Socialite callback failed', ['provider' => $provider, 'e' => $e->getMessage()]);
+            try {
                 $socialUser = \Laravel\Socialite\Facades\Socialite::driver($provider)->stateless()->user();
-                logger()->info('Stateless Socialite succeeded', ['provider' => $provider, 'id' => $socialUser->getId(), 'email' => $socialUser->getEmail()]);
-            } catch(\Exception $e2){
-                logger()->error('Socialite callback exception (stateless fallback)', [
-                    'provider' => $provider,
-                    'message' => $e2->getMessage(),
-                    'code' => $e2->getCode(),
-                    'trace' => $e2->getTraceAsString(),
-                ]);
-
+            } catch (\Exception $e2) {
+                logger()->error('Socialite stateless fallback failed', ['provider' => $provider, 'e' => $e2->getMessage()]);
                 return redirect('/login')->withErrors(['oauth' => 'Error al autenticar con '.$provider.'. Revisa los registros para más detalles.']);
             }
         }
 
-
-        // Ensure we have an email (GitHub may not provide one if it's private)
         $email = $socialUser->getEmail();
-        if (empty($email)) {
-            return redirect('/login')->withErrors(['oauth' => 'No se obtuvo el correo del proveedor. Por favor usa registro tradicional o asegúrate que tu proveedor comparte el email.']);
-        }
+        if (empty($email)) return redirect('/login')->withErrors(['oauth' => 'No se obtuvo el correo del proveedor. Por favor usa registro tradicional o asegúrate que tu proveedor comparte el email.']);
 
-        // Find or create local Usuario (app uses `usuarios` table)
         $usuario = Usuario::where('correo', $email)->first();
         if (!$usuario) {
-            // try to split name into first/last
             $fullName = $socialUser->getName() ?? $socialUser->getNickname() ?? 'Usuario';
             $parts = preg_split('/\s+/', trim($fullName), 2);
-            $first = $parts[0] ?? 'Usuario';
-            $last = $parts[1] ?? '';
-
             $usuario = Usuario::create([
-                'nombre' => $first,
-                'apellido' => $last,
+                'nombre' => $parts[0] ?? 'Usuario',
+                'apellido' => $parts[1] ?? '',
                 'correo' => $email,
-                // the mutator will hash this
                 'password' => Str::random(24),
                 'rol' => 'empleado',
                 'proveedor_oauth' => $provider,
@@ -341,12 +178,9 @@ class AuthController extends Controller
                 'fecha_registro' => now(),
                 'estado' => 'activo',
                 'sexo' => 'no binario',
-                'verification_token' => null,
-                'verification_sent_at' => null,
                 'email_verified_at' => now(),
             ]);
         } else {
-            // Update provider info if missing
             $changed = false;
             if (empty($usuario->proveedor_oauth)) { $usuario->proveedor_oauth = $provider; $changed = true; }
             if (empty($usuario->proveedor_id)) { $usuario->proveedor_id = $socialUser->getId(); $changed = true; }
@@ -354,132 +188,70 @@ class AuthController extends Controller
             if ($changed) $usuario->save();
         }
 
-        // Log in the usuario
         Auth::login($usuario, true);
-
-        // Here: migrate any session-stored completed courses into user's profile (DB).
-        // Example placeholder: \App\Services\CourseProgress::syncSessionToUser($user, session('course_progress'));
-
         return redirect('/microcursos');
     }
 
-    // Show edit profile form
+    // ------  Perfil: ver y editar  ------
     public function editProfile()
     {
         $user = auth()->user();
         return view('perfil.edit', compact('user'));
     }
 
-    // Update profile (name, apellido, sexo)
     public function updateProfile(Request $request)
     {
         $user = auth()->user();
-        // Block DB writes for demo users (configured demo IDs/emails)
-        $isDemo = false;
-        try {
-            $demoIds = config('demo.ids', []);
-            $demoEmails = config('demo.emails', []);
-            $uid = $user->getAuthIdentifier();
-            if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true;
-            $email = $user->email ?? ($user->correo ?? null);
-            if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true;
-        } catch(\Throwable $e) { $isDemo = false; }
-        $request->validate([
-            'nombre' => 'required|string|max:100',
-            'apellido' => 'required|string|max:100',
-            'sexo' => 'nullable|in:masculino,femenino,no binario',
-        ]);
+        $request->validate(['nombre' => 'required|string|max:100', 'apellido' => 'required|string|max:100', 'sexo' => 'nullable|in:masculino,femenino,no binario']);
+        if ($this->isDemoUser($user)) return redirect()->route('perfil.edit')->with('status', 'Cuenta de demostración: los cambios no se guardaron. Crea una cuenta propia para guardar cambios.');
 
-        $user->nombre = $request->input('nombre');
-        $user->apellido = $request->input('apellido');
-        $user->sexo = $request->input('sexo') ?? $user->sexo;
-        if ($isDemo) {
-            // Don't persist demo changes
-            return redirect()->route('perfil.edit')->with('status', 'Cuenta de demostración: los cambios no se guardaron. Crea una cuenta propia para guardar cambios.');
-        }
-        $user->save();
-
+        $user->fill(['nombre' => $request->input('nombre'), 'apellido' => $request->input('apellido'), 'sexo' => $request->input('sexo') ?? $user->sexo])->save();
         return redirect()->route('perfil.edit')->with('status', 'Información actualizada correctamente');
     }
 
-    // Show change password form
+    // ------  Contraseña  ------
     public function showChangePassword()
     {
         return view('perfil.password');
     }
 
-    // Handle password change
     public function changePassword(Request $request)
     {
-        $request->validate([
-            'current_password' => 'required|string',
-            'password' => 'required|confirmed|min:6',
-        ]);
+        $request->validate(['current_password' => 'required|string', 'password' => 'required|confirmed|min:6']);
+        $user = auth()->user();
+        if ($this->isDemoUser($user)) return redirect()->route('perfil.edit')->with('status', 'Cuenta de demostración: la contraseña no fue modificada. Crea una cuenta propia para cambiar tu contraseña.');
+        if (!Hash::check($request->input('current_password'), $user->password)) return back()->withErrors(['current_password' => 'La contraseña actual es incorrecta']);
 
-    $user = auth()->user();
-    // Block demo users from changing password in DB (configured list)
-    $isDemo = false;
-    try {
-        $demoIds = config('demo.ids', []);
-        $demoEmails = config('demo.emails', []);
-        $uid = $user->getAuthIdentifier();
-        if ($uid && in_array(intval($uid), $demoIds, true)) $isDemo = true;
-        $email = $user->email ?? ($user->correo ?? null);
-        if ($email && in_array(strtolower($email), array_map('strtolower',$demoEmails), true)) $isDemo = true;
-    } catch(\Throwable $e) { $isDemo = false; }
-
-        // Verify current password
-        if (!\Illuminate\Support\Facades\Hash::check($request->input('current_password'), $user->password)) {
-            return back()->withErrors(['current_password' => 'La contraseña actual es incorrecta']);
-        }
-
-        $user->password = $request->input('password'); // mutator will hash
-        if ($isDemo) {
-            // don't persist password change
-            return redirect()->route('perfil.edit')->with('status', 'Cuenta de demostración: la contraseña no fue modificada. Crea una cuenta propia para cambiar tu contraseña.');
-        }
-
+        $user->password = $request->input('password');
         $user->save();
-
-        // Regenerate session to avoid fixation
         $request->session()->regenerate();
-
         return redirect()->route('perfil.edit')->with('status', 'Contraseña cambiada correctamente');
     }
 
-    // Admin endpoint: change a user's role (only minimal info required)
+    // ------  Administración: cambios rápidos  ------
     public function changeUserRole(Request $request)
     {
-        $request->validate([
-            'id_usuario' => 'required|integer|exists:usuarios,id_usuario',
-            'rol' => 'required|in:admin,instructor,empleado',
-        ]);
-
+        $request->validate(['id_usuario' => 'required|integer|exists:usuarios,id_usuario', 'rol' => 'required|in:admin,instructor,empleado']);
         $auth = auth()->user();
-        if (!$auth || $auth->rol !== 'admin') {
-            return response()->json(['error' => 'no autorizado'], 403);
-        }
+        if (!$auth || $auth->rol !== 'admin') return response()->json(['error' => 'no autorizado'], 403);
+        if ($this->isDemoUser($auth)) return response()->json(['demo' => true, 'message' => 'Cuenta de demostración: no está permitido modificar roles desde este perfil.'], 200);
 
-        // Prevent demo admin from changing roles (configured list)
-        $isDemoAdmin = false;
-        try{
-            $demoIds = config('demo.ids', []);
-            $demoEmails = config('demo.emails', []);
-            $aid = $auth->getAuthIdentifier();
-            if ($aid && in_array(intval($aid), $demoIds, true)) $isDemoAdmin = true;
-            $aemail = $auth->email ?? ($auth->correo ?? null);
-            if ($aemail && in_array(strtolower($aemail), array_map('strtolower',$demoEmails), true)) $isDemoAdmin = true;
-        }catch(\Throwable $e){}
-        if ($isDemoAdmin){
-            return response()->json(['demo' => true, 'message' => 'Cuenta de demostración: no está permitido modificar roles desde este perfil.'], 200);
-        }
-
-        $u = \App\Models\Usuario::find($request->input('id_usuario'));
+        $u = Usuario::find($request->input('id_usuario'));
         if (!$u) return response()->json(['error' => 'usuario no encontrado'], 404);
-
         $u->rol = $request->input('rol');
         $u->save();
-
         return response()->json(['ok' => true, 'id_usuario' => $u->id_usuario, 'rol' => $u->rol]);
+    }
+
+    // ------  Helpers privados (DRY)  ------
+    private function sendVerificationEmail(Usuario $usuario, string $token): bool
+    {
+        try {
+            Mail::to($usuario->correo)->send(new VerifyEmail($usuario, $token));
+            return true;
+        } catch (\Exception $e) {
+            logger()->warning('Failed to send verification email: '.$e->getMessage());
+            return false;
+        }
     }
 }
