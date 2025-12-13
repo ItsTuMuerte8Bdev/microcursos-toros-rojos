@@ -12,10 +12,10 @@ class CursoController extends Controller
 {
     public function index(Request $request)
     {
-        // Server-side filtering for API consumption
+        // Indexación de cursos con paginación y filtros
         $q = $request->query('q');
         $category = $request->query('category');
-        $status = $request->query('status'); // not used here for progress (client will request progress separately)
+        $status = $request->query('status'); // no tiene que ver con el estado del curso en sí, sino con el progreso del usuario
         $perPage = (int) $request->query('per_page', 12);
 
         $query = Curso::with(['categoria'])->orderBy('titulo');
@@ -31,8 +31,7 @@ class CursoController extends Controller
             $query->where('id_categoria', $category);
         }
 
-        // For now, 'status' is not applied at DB level because progress is per-user and requires joins.
-        // The client can request progress per-page after receiving the course list.
+        // Filtro por estado del curso para el usuario autenticado
 
         $paginated = $query->paginate($perPage)->appends($request->query());
 
@@ -51,26 +50,26 @@ class CursoController extends Controller
         return response()->json($curso, 201);
     }
 
-    // Render a blade with list of cursos (uses existing microcursos design)
+    // Muestra una vista con todos los cursos
     public function indexView()
     {
-        // pass courses so blade can render them server-side
+        // Pasar los cursos para que Blade pueda renderizarlos del lado del servidor
         $cursos = Curso::with(['categoria','creador','modulos.lecciones'])->get();
         return view('microcursos', compact('cursos'));
     }
 
-    // Render a single course view
+    // Vista detallada de un curso específico
     public function showView($id)
     {
         $curso = Curso::with(['categoria', 'creador', 'modulos.lecciones'])->findOrFail($id);
 
-        // compute per-module progress for the current user (avoid N+1 by using grouped queries)
+        // Calcular el progreso por módulo para el usuario actual (evitar N+1 utilizando consultas agrupadas)
         $userId = Auth::id();
         $moduleProgress = [];
         if ($userId) {
             $moduleIds = $curso->modulos->pluck('id_modulo')->toArray();
 
-            // totals per module
+            // Opciones por modulo
             $totals = DB::table('lecciones')
                 ->whereIn('id_modulo', $moduleIds)
                 ->groupBy('id_modulo')
@@ -78,7 +77,7 @@ class CursoController extends Controller
                 ->pluck('total', 'id_modulo')
                 ->toArray();
 
-            // completed per module for this user
+            // Lo que esta hecho por modulo por el usuario
             $completed = DB::table('progreso')
                 ->join('lecciones', 'progreso.id_leccion', '=', 'lecciones.id_leccion')
                 ->whereIn('lecciones.id_modulo', $moduleIds)
@@ -88,7 +87,7 @@ class CursoController extends Controller
                 ->select('lecciones.id_modulo', DB::raw('count(DISTINCT progreso.id_leccion) as completed'))
                 ->pluck('completed', 'id_modulo')
                 ->toArray();
-
+            // Calcular el progreso por módulo
             foreach ($curso->modulos as $m) {
                 $mid = $m->id_modulo;
                 $total = isset($totals[$mid]) ? intval($totals[$mid]) : 0;
@@ -97,24 +96,24 @@ class CursoController extends Controller
                 $moduleProgress[$mid] = ['percent' => $percent, 'completed' => $comp, 'total' => $total];
             }
         } else {
-            // not authenticated: all zeros
+            // Si no está autenticado, todo está en 0's
             foreach ($curso->modulos as $m) {
                 $moduleProgress[$m->id_modulo] = ['percent' => 0, 'completed' => 0, 'total' => $m->lecciones->count()];
             }
         }
 
-        // also pass a list of cursos so the blade can render a courses index in the onboarding panel
+        // Pasar también la lista completa de cursos para navegación
         $cursosList = Curso::orderBy('titulo')->get();
         return view('cursos.show', compact('curso', 'moduleProgress', 'cursosList'));
     }
 
-    // Redirect user to next incomplete lesson for this course, or to course view if none
+    // Se usa para pasar a la lección que este en progreso o la primera no empezada
     public function continue(Request $request, $id)
     {
         $curso = Curso::with(['modulos.lecciones'])->findOrFail($id);
         $userId = Auth::id();
 
-        // Build ordered list of lesson ids by module orden then by id_leccion
+        // Contruye la lista de progreso por lecciones
         $lessonList = [];
         foreach ($curso->modulos->sortBy('orden') as $mod) {
             $lecs = $mod->lecciones->sortBy('id_leccion');
@@ -122,11 +121,11 @@ class CursoController extends Controller
         }
 
         if (!$userId) {
-            // Not authenticated: send to course view where they'll be prompted to login
+            // Si no está autenticado, redirigir a la vista del curso
             return redirect()->route('cursos.show', ['id' => $id]);
         }
 
-        // Find the first lesson in the list that the user hasn't completed
+        // Encuentra la siguiente lección no completada
         $completed = \App\Models\Progreso::where('id_usuario', $userId)
             ->where('completado', true)
             ->whereIn('id_leccion', $lessonList)
@@ -142,14 +141,14 @@ class CursoController extends Controller
             return redirect()->route('lecciones.view', ['id' => $next]);
         }
 
-        // If nothing left, go to course view (maybe show completion badge)
+        // Si todo está completado, redirigir a la vista del curso
         return redirect()->route('cursos.show', ['id' => $id]);
     }
 
-    // Return progress percentage for a user and a course
+    // Retorna el progreso de un curso específico para el usuario autenticado
     public function progress(Request $request, $id)
     {
-        // Determine which user to check: prefer authenticated user; allow admin to specify id_usuario
+        // Determina qué usuario verificar: usuario autenticado por defecto; el admin puede pasar id_usuario
         $requestedUserId = $request->query('id_usuario');
         $authUser = Auth::user();
         if ($authUser && $authUser->rol === 'admin' && $requestedUserId) {
@@ -164,7 +163,7 @@ class CursoController extends Controller
         foreach($curso->modulos as $m) $totalLecciones += $m->lecciones->count();
         if ($totalLecciones === 0) return response()->json(['percent' => 0, 'moduleProgress' => []]);
 
-        // Completed overall (for course percent) - count DISTINCT lecciones to avoid double-counting
+        // Calcular lecciones completadas
         $completed = DB::table('progreso')
             ->where('id_usuario', $userId)
             ->where('completado', true)
@@ -178,19 +177,19 @@ class CursoController extends Controller
             ->count('id_leccion');
 
         $percent = $totalLecciones === 0 ? 0 : intval(($completed / $totalLecciones) * 100);
-        // cap percent to 100 to avoid >100 values caused by data inconsistencies
+        // Previene inconsistencias
         if ($percent > 100) $percent = 100;
 
-        // Build per-module progress (include title so frontend can render without parsing DOM)
+        // Calcular progreso por módulo
         $moduleIds = $curso->modulos->pluck('id_modulo')->toArray();
-
+        // Opciones por modulo
         $totals = DB::table('lecciones')
             ->whereIn('id_modulo', $moduleIds)
             ->groupBy('id_modulo')
             ->select('id_modulo', DB::raw('count(id_leccion) as total'))
             ->pluck('total', 'id_modulo')
             ->toArray();
-
+        // Lo que esta hecho por modulo por el usuario
         $completedPerModule = DB::table('progreso')
             ->join('lecciones', 'progreso.id_leccion', '=', 'lecciones.id_leccion')
             ->whereIn('lecciones.id_modulo', $moduleIds)
@@ -200,7 +199,7 @@ class CursoController extends Controller
             ->select('lecciones.id_modulo', DB::raw('count(DISTINCT progreso.id_leccion) as completed'))
             ->pluck('completed', 'id_modulo')
             ->toArray();
-
+        // Calcular el progreso por módulo
         $moduleProgress = [];
         foreach ($curso->modulos as $m) {
             $mid = $m->id_modulo;
@@ -219,18 +218,18 @@ class CursoController extends Controller
         return response()->json(['percent' => $percent, 'completed' => $completed, 'total' => $totalLecciones, 'moduleProgress' => $moduleProgress]);
     }
 
-    // Return progress for multiple courses in one request
+    // Retorna el progreso en batch para múltiples cursos para el usuario autenticado
     public function progressBatch(Request $request)
     {
         try {
-            // Allow id_usuario to be nullable: prefer authenticated user when not provided.
+            // EL id de usuario se maneja más abajo
             $data = $request->validate([
                 'ids' => 'required|array',
                 'ids.*' => 'integer',
                 'id_usuario' => 'nullable|integer'
             ]);
 
-            // Helpful debug log: record payload in debug mode to trace intermittent issues
+            // El logueo de depuración si está habilitado
             if (config('app.debug')) {
                 \Log::debug('progressBatch payload', ['payload' => $request->all()]);
             }

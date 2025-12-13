@@ -11,6 +11,7 @@ use App\Http\Controllers\Concerns\DemoProtect;
 class ProgresoController extends Controller
 {
     use DemoProtect;
+    // Lista el progreso, opcionalmente filtrado por usuario
     public function index(Request $request)
     {
         $query = Progreso::query();
@@ -19,7 +20,7 @@ class ProgresoController extends Controller
         }
         return $query->with(['usuario', 'leccion'])->get();
     }
-
+    // Almacena o actualiza el progreso de una lección para un usuario
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -28,7 +29,7 @@ class ProgresoController extends Controller
             'completado' => 'required|boolean',
         ]);
 
-        // Prefer authenticated user when available
+        // Determina el ID de usuario para identificar entre user real o demo
         $userId = Auth::id() ?: ($data['id_usuario'] ?? null);
         if ($this->isDemoUser(Auth::user())) {
             return response()->json(['demo' => true, 'message' => 'Cuenta de demostración: el progreso se mantiene localmente pero no se guarda en la base de datos.'], 200);
@@ -37,24 +38,24 @@ class ProgresoController extends Controller
             return response()->json(['error' => 'Usuario no autenticado'], 401);
         }
 
-        // Ensure leccion exists and check module evaluations (if any)
+        // Verifica si la lección tiene evaluaciones asociadas
         $leccion = Leccion::with(['modulo.evaluaciones.preguntas'])->find($data['id_leccion']);
         if (!$leccion) return response()->json(['error' => 'Lección no encontrada'], 404);
 
-        // If the module contains evaluations, require that the user has full score results
+        // Si el modulo tiene evaluaciones, verifica que el usuario haya completado correctamente todas ellas antes de marcar la lección como completada
         $evaluaciones = $leccion->modulo->evaluaciones ?? [];
         if (count($evaluaciones) > 0 && $data['completado']){
             foreach($evaluaciones as $ev){
-                // total possible score for this evaluation
+                // Total de puntos posibles en esta evaluación
                 $totalPossible = $ev->preguntas->sum('puntaje');
-                // if there are no preguntas, skip this evaluation
+                // Si no hay preguntas, continua
                 if ($totalPossible <= 0) continue;
-                // get the user's best/latest resultado for this evaluation
+                // Obtiene el mejor resultado del usuario en esta evaluación
                 $resultado = Resultado::where('id_usuario', $userId)
                     ->where('id_evaluacion', $ev->id_evaluacion)
                     ->orderBy('fecha', 'desc')
                     ->first();
-                // If no resultado or score is less than totalPossible, deny marking complete
+                // Si no hay resultado, lanza error
                 if (!$resultado || intval($resultado->puntaje_obtenido) < intval($totalPossible)){
                     return response()->json(['error' => 'No has completado correctamente la evaluación asociada a esta lección'], 403);
                 }

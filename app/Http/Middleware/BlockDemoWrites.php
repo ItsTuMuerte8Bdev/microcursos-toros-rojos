@@ -6,18 +6,14 @@ use Illuminate\Http\Request;
 
 class BlockDemoWrites
 {
-    /**
-     * Demo user identifiers (can be IDs or emails). Adjust as needed.
-     * By default we block users with id 1 and 2 (seeded demo accounts).
-     */
-    // lists are read from config/demo.php to allow a single authoritative source
-
+    // Recibe la solicitud entrante
     public function handle(Request $request, Closure $next)
     {
         $user = $request->user();
         if (!$user) return $next($request);
-
+        
         $isDemo = false;
+        // Determine si el usuario es de demostración
         try{
             $demoIds = config('demo.ids', []);
             $demoEmails = config('demo.emails', []);
@@ -31,11 +27,10 @@ class BlockDemoWrites
             $isDemo = false;
         }
 
-        // Only block mutating HTTP methods
+        // Solo permite métodos de solo lectura para usuarios de demostración
         $writeMethods = ['POST','PUT','PATCH','DELETE'];
         if ($isDemo && in_array($request->method(), $writeMethods, true)) {
-            // For AJAX / JSON requests return a friendly JSON result so frontend
-            // can save locally or show informative message.
+            // Para solicitudes AJAX/JSON, retorna un JSON con mensaje
             if ($request->expectsJson() || $request->ajax() || $request->isJson() || str_contains($request->header('X-Requested-With',''), 'XMLHttpRequest')) {
                 return response()->json([
                     'demo' => true,
@@ -43,8 +38,7 @@ class BlockDemoWrites
                 ], 200);
             }
 
-            // For regular form submissions redirect back with status message.
-            // Preserve previous input where appropriate.
+            // Para solicitudes normales, redirige de vuelta con mensaje flash
             return redirect()->back()->withInput($request->all())->with('status', 'Cuenta de demostración: los cambios no se guardaron en la base de datos. Crea una cuenta propia para una experiencia real.');
         }
 

@@ -7,13 +7,13 @@ use Illuminate\Http\Request;
 
 class LeccionController extends Controller
 {
-    // API: return leccion with its modulo and curso info
+    // Retorna el id de una lección específica con su módulo y curso relacionados
     public function show($id)
     {
         return Leccion::with(['modulo.curso'])->findOrFail($id);
     }
 
-    // Render blade view for a leccion
+    // Renderiza la vista de la lección con navegación previa/siguiente
     public function view($id)
     {
         $leccion = Leccion::with(['modulo.curso'])->findOrFail($id);
@@ -55,12 +55,11 @@ class LeccionController extends Controller
                 ->first();
         }
 
-        // also pass the ordered list of lessons in the current course so the view can render
-        // an onboarding / índice lateral con todas las lecciones del curso
+        // Retorna la vista con los datos necesarios
         return view('lecciones.view', compact('leccion', 'prev', 'next', 'leccionesEnCurso'));
     }
 
-    // Optionally record local progress (not used directly here)
+    // Guarda el progreso de manera local
     public function storeProgress(Request $request)
     {
         $data = $request->validate([

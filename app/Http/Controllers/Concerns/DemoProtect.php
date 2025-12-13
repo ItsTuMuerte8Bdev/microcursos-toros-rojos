@@ -1,13 +1,12 @@
 <?php
-
+// Declaración de lenguaje
 namespace App\Http\Controllers\Concerns;
-
+// Ruta conectada al controlador
 trait DemoProtect
+// Permite reusabilidad de código en múltiples controladores
 {
-    /**
-     * Determina si un usuario es una cuenta de demostración según config('demo')
-     * Acepta null y devuelve false en ese caso.
-     */
+    /*- Determina si un usuario es una cuenta de demostración según config('demo')
+     - Acepta null y devuelve false en ese caso.*/
     protected function isDemoUser($user): bool
     {
         if (!$user) return false;

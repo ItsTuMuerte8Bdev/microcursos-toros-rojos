@@ -9,7 +9,7 @@ use App\Http\Controllers\Concerns\DemoProtect;
 class OfflineController extends Controller
 {
     use DemoProtect;
-    // Sync progress sent from the client while offline
+    // Sincroniza el progreso enviado desde el cliente offline
     public function syncProgress(Request $request)
     {
         $user = Auth::user();
@@ -30,24 +30,24 @@ class OfflineController extends Controller
             $id_leccion = $p['lessonId'] ?? ($p['id_leccion'] ?? null);
             $completado = null;
             if (is_array($p['progress'] ?? null)) {
-                // if progress contains 'completado' boolean
+                // si es un objeto, buscar la clave 'completado'
                 $completado = isset($p['progress']['completado']) ? (bool)$p['progress']['completado'] : null;
             } else {
-                // allow boolean directly
+                // Permite booleano de lleno
                 $completado = isset($p['progress']) && ($p['progress'] === true || $p['progress'] === false) ? (bool)$p['progress'] : null;
             }
 
             if (!$id_leccion || $completado === null) continue;
 
             try{
-                // Use the existing ProgresoController logic's expectations: id_leccion and completado
+                // Usa updateOrCreate para evitar duplicados
                 $attrs = ['id_usuario' => $user->getKey(), 'id_leccion' => intval($id_leccion)];
                 $values = ['completado' => (bool)$completado];
                 if ($values['completado']) $values['fecha_completado'] = now(); else $values['fecha_completado'] = null;
                 Progreso::updateOrCreate($attrs, $values);
                 $saved++;
             }catch(\Exception $e){
-                // log and continue
+                // Registro de error sin interrumpir el proceso
                 \Log::warning('offline.syncProgress: failed saving progreso', ['err' => $e->getMessage(), 'payload' => $p]);
             }
         }

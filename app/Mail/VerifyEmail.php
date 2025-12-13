@@ -15,18 +15,14 @@ class VerifyEmail extends Mailable
     public $usuario;
     public $token;
 
-    /**
-     * Create a new message instance.
-     */
+    // Crea una nueva instancia del mensaje
     public function __construct(Usuario $usuario, $token)
     {
         $this->usuario = $usuario;
         $this->token = $token;
     }
 
-    /**
-     * Build the message.
-     */
+    // Construye el mensaje
     public function build()
     {
         return $this->subject('Verifica tu correo - Microcursos')
