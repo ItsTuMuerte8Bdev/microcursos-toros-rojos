@@ -1039,12 +1039,24 @@
             };
             // offlinepwa:ready is dispatched after IndexedDB opens (see DOMContentLoaded handler)
         })();
-        // Registrar service worker (no intrusivo) si el navegador lo soporta
+        // Registrar service worker sólo si estamos dentro de la app de Microcursos
+        // Evita que el SW con scope en la raíz afecte a otras apps del mismo dominio.
         if ('serviceWorker' in navigator) {
             try {
-                navigator.serviceWorker.register('/sw.js').then(function(reg){
-                    console.log('Service worker registrado en scope:', reg.scope);
-                }).catch(function(err){ console.warn('Registro SW falló', err); });
+                const path = location.pathname || '/';
+                // Comprobar si la URL actual pertenece a la app de microcursos
+                if (path.startsWith('/microcursos-toros-rojos') || path.startsWith('/microcursos-toros-rojos/')) {
+                    // Registrar con ruta y scope limitados a la carpeta pública de Microcursos
+                    navigator.serviceWorker.register('/microcursos-toros-rojos/public/sw.js', { scope: '/microcursos-toros-rojos/public/' })
+                        .then(function(reg){
+                            console.log('Service worker registrado en scope:', reg.scope);
+                        }).catch(function(err){ console.warn('Registro SW falló', err); });
+                } else {
+                    // No registrar en otras rutas del dominio. El Service Worker ya
+                    // filtra por ruta dentro de `sw.js`, por lo que no es necesario
+                    // desregistrarlo ni borrar caches aquí (preservamos offline).
+                    console.log('Service worker no registrado en esta ruta:', path);
+                }
             } catch(e) { console.warn('Registro SW no soportado', e); }
         }
         

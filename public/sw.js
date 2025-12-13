@@ -45,6 +45,21 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
+  // Filtrar sólo peticiones que pertenezcan a la app de Microcursos. Si la
+  // ruta no comienza por `/microcursos-toros-rojos` dejamos que el navegador
+  // maneje la petición de forma nativa (no llamamos a event.respondWith).
+  try{
+    const url = new URL(req.url);
+    const p = url.pathname || '/';
+    if (!p.startsWith('/microcursos-toros-rojos') && !p.startsWith('/microcursos-toros-rojos/')){
+      // No gestionar esta petición desde el SW
+      return;
+    }
+  }catch(e){
+    // Si no podemos parsear la URL, por seguridad no interceptamos
+    return;
+  }
+
   const accept = req.headers.get('accept') || '';
   const isNavigation = req.mode === 'navigate' || accept.includes('text/html');
 
